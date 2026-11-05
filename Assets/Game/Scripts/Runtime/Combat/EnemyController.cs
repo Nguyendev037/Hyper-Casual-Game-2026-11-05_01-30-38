@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using RHMG.Core;
 using RHMG.Runtime.Visuals;
@@ -11,10 +12,10 @@ namespace RHMG.Runtime.Combat
         public float Radius { get; private set; }
         public bool Alive => health != null && !health.Dead;
         /// <summary>False while a boss is shielded or changing phase: auto-aim and bullets ignore it.</summary>
-        public bool Targetable => Alive && (brain == null || !brain.Untargetable);
+        public bool Targetable => Alive && !vanished && (brain == null || !brain.Untargetable);
         public bool Elite { get; private set; }
         public bool IsAnchor { get; private set; }
-        public bool IsBoss => !IsAnchor && !isDummy && Kind >= EnemyKind.CageWarden;
+        public bool IsBoss => !IsAnchor && !isDummy && EnemyKinds.IsBoss(Kind);
         /// <summary>Index of the pool this controller belongs to (EnemyKind value, or AnchorPoolIndex).</summary>
         public int PoolIndex { get; private set; }
         public float HpFraction => health == null ? 0f : health.Current / health.Max;
@@ -57,6 +58,13 @@ namespace RHMG.Runtime.Combat
         private BossBrain brain;
         private Vector3 visualBaseScale = Vector3.one;
         private Action<EnemyController> anchorKilled;
+        private readonly Dictionary<EnemyKind, GameObject> visuals = new Dictionary<EnemyKind, GameObject>();
+        private EnemyArchetype archetype;
+        private bool vanished;
+        private bool isSplitChild;
+
+        /// <summary>Set by EnemySpawner just before CombatWorld.SpawnEnemy so a pooled controller can host a chapter kind.</summary>
+        internal static EnemyKind? PendingKind;
 
         public void Init(CombatWorld ownerWorld, Action<EnemyController> releaseAction, EnemyKind kind, int poolIndex)
         {
@@ -66,6 +74,7 @@ namespace RHMG.Runtime.Combat
             PoolIndex = poolIndex;
             IsAnchor = poolIndex == AnchorPoolIndex;
             visual = IsAnchor ? CharacterFactory.CreateAnchor(transform) : CharacterFactory.CreateEnemy(kind, transform);
+            visuals[kind] = visual;
             billboard = visual.GetComponentInChildren<SpriteBillboard>();
             visualBaseScale = visual.transform.localScale;
             eliteRing = VfxFactory.EliteRing(0.9f);
@@ -85,7 +94,17 @@ namespace RHMG.Runtime.Combat
 
         public void Spawn(EnemyKind kind, Vector3 position, float hpMult = 1f, float dmgMult = 1f, bool elite = false)
         {
+            if (PendingKind.HasValue)
+            {
+                kind = PendingKind.Value;
+                PendingKind = null;
+            }
+
             Kind = kind;
+            transform.localScale = Vector3.one;
+            vanished = false;
+            isSplitChild = false;
+            UseVisual(kind);
             if (billboard != null)
             {
                 billboard.Revive();
@@ -95,6 +114,8 @@ namespace RHMG.Runtime.Combat
             facing = default; // pooled enemies must not keep the previous life's yaw
             EnemyDefinition definition = Catalog.GetEnemy(kind);
             Radius = definition.Radius;
+            archetype = definition.Archetype;
+            ResetBrainState(definition);
             Elite = elite;
             damageMult = dmgMult;
             float hp = definition.MaxHp * hpMult * (elite ? CombatTuning.EliteHpMult : 1f);
@@ -130,7 +151,7 @@ namespace RHMG.Runtime.Combat
             {
                 Radius = 0.8f;
             }
-            else if (kind >= EnemyKind.CageWarden)
+            else if (EnemyKinds.IsBoss(kind))
             {
                 brain = new BossBrain(this, world, kind, world.CurrentFloor, dmgMult);
             }
@@ -198,6 +219,8 @@ namespace RHMG.Runtime.Combat
                 }
             }
 
+            amount = ApplyShield(amount, from);
+
             health.Damage(amount, from);
             if (isDummy)
             {
@@ -230,7 +253,7 @@ namespace RHMG.Runtime.Combat
         {
             float resist = 1f;
             float cap = 1f;
-            if (Kind == EnemyKind.CageWarden && !IsAnchor)
+            if (EnemyKinds.IsGuardian(Kind) && !IsAnchor)
             {
                 resist = 0.5f;
             }
@@ -265,10 +288,11 @@ namespace RHMG.Runtime.Combat
 
             EnemyDefinition definition = Catalog.GetEnemy(Kind);
             Vector3 beforeMove = transform.position;
+            skipMotionSample = false;
             Vector3 toPlayer = CombatMath.Direction(transform.position, world.Player.transform.position);
             if (visual != null)
             {
-                facing.Face(toPlayer);
+                facing.Face(FaceDirection(toPlayer));
                 facing.Step(deltaTime, IsBoss ? 120f : 360f);
                 visual.transform.rotation = facing.Rotation;
             }
@@ -277,23 +301,24 @@ namespace RHMG.Runtime.Combat
             {
                 brain.Step(deltaTime, toPlayer, definition.MoveSpeed, 1f - slowAmount);
             }
-            else if (Kind == EnemyKind.SandBeetle)
-            {
-                StepBeetle(deltaTime, definition, toPlayer);
-            }
-            else if (Kind == EnemyKind.SandEye)
-            {
-                StepEye(deltaTime, definition, toPlayer);
-            }
             else
             {
-                StepSentinel(deltaTime, definition, toPlayer);
+                StepRegular(deltaTime, definition, toPlayer);
             }
+
+            if (!Alive)
+            {
+                return;
+            }
+
+            float moved = skipMotionSample ? 0f : CombatMath.Flat(transform.position - beforeMove).magnitude;
+            float speed = moved / Mathf.Max(deltaTime, 0.0001f);
             if (billboard != null)
             {
-                float speed = CombatMath.Flat(transform.position - beforeMove).magnitude / Mathf.Max(deltaTime, 0.0001f);
                 billboard.SetMotion(speed / Mathf.Max(0.01f, definition.MoveSpeed));
             }
+
+            BossFootsteps(deltaTime, speed);
         }
 
         private void TickEffects(float deltaTime)
@@ -318,6 +343,11 @@ namespace RHMG.Runtime.Combat
         {
             transform.position = CombatMath.ClampArena(transform.position +
                 direction * definition.MoveSpeed * (1f - slowAmount) * deltaTime);
+            ContactTick(deltaTime, definition);
+        }
+
+        private void ContactTick(float deltaTime, EnemyDefinition definition)
+        {
             if (!CombatMath.Overlap(transform.position, Radius, world.Player.transform.position,
                 CombatTuning.PlayerRadius))
             {

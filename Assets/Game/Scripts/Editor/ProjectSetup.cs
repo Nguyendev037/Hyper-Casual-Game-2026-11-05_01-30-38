@@ -32,7 +32,8 @@ namespace RHMG.EditorTools
         public static bool MaterialsMissing()
         {
             return !File.Exists(ResDir + "/Lit.mat") || !File.Exists(ResDir + "/Unlit.mat")
-                || !File.Exists(ResDir + "/UnlitTransparent.mat") || !File.Exists(ResDir + "/SpriteUnlit.mat");
+                || !File.Exists(ResDir + "/UnlitTransparent.mat") || !File.Exists(ResDir + "/SpriteUnlit.mat")
+                || !File.Exists(ResDir + "/VfxAdditive.mat") || !File.Exists(ResDir + "/VfxTrail.mat");
         }
 
         public static bool SceneMissing() { return !File.Exists(ScenePath); }
@@ -76,6 +77,41 @@ namespace RHMG.EditorTools
             // Character billboards: 2D unlit sprite shader (works in the 3D URP renderer); Sprites/Default if URP 2D is absent.
             const string spriteShader = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
             EnsureMat("SpriteUnlit", Shader.Find(spriteShader) != null ? spriteShader : "Sprites/Default", null);
+            EnsureVfxMaterials();
+        }
+
+        /// <summary>Creates only the two VFX materials (batch: -executeMethod RHMG.EditorTools.ProjectSetup.EnsureVfxOnly).</summary>
+        public static void EnsureVfxOnly()
+        {
+            EnsureFolders();
+            EnsureVfxMaterials();
+            AssetDatabase.SaveAssets();
+            Debug.Log("[RHMG.Setup] EnsureVfxOnly done.");
+        }
+
+        // SPEC-P03: particle/trail materials are assets in Resources so the shader survives player builds (plan05 C5).
+        static void EnsureVfxMaterials()
+        {
+            const string particles = "Universal Render Pipeline/Particles/Unlit";
+            EnsureMat("VfxAdditive", particles, m => SetupParticleMaterial(m, BlendMode.SrcAlpha, BlendMode.One, 2f));
+            EnsureMat("VfxTrail", particles,
+                m => SetupParticleMaterial(m, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha, 0f));
+        }
+
+        static void SetupParticleMaterial(Material m, BlendMode src, BlendMode dst, float blendMode)
+        {
+            m.SetFloat("_Surface", 1f);
+            m.SetFloat("_Blend", blendMode);
+            m.SetFloat("_SrcBlend", (float)src);
+            m.SetFloat("_DstBlend", (float)dst);
+            m.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+            m.SetFloat("_DstBlendAlpha", (float)dst);
+            m.SetFloat("_ZWrite", 0f);
+            m.SetFloat("_Cull", 0f);
+            m.SetColor("_BaseColor", Color.white);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.renderQueue = 3000;
         }
 
         static void EnsureScene()
@@ -130,15 +166,44 @@ namespace RHMG.EditorTools
         {
             PlayerSettings.companyName = "KITTS Games";
             PlayerSettings.productName = "Red Hair Magic Girl";
-            PlayerSettings.bundleVersion = "0.4.0";
+            PlayerSettings.bundleVersion = "0.5.0";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.kitts.redhairmagicgirl");
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
-            PlayerSettings.Android.bundleVersionCode = 4;
+            PlayerSettings.Android.bundleVersionCode = 5;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.Android.useCustomKeystore = false;
+        }
+    }
+
+    /// <summary>
+    /// FIX-FLOOR (plan05): URP gathers its shader-stripping features from the URP assets of
+    /// EditorUserBuildSettings.activeBuildTarget, while the keyword prefilter follows the real build target.
+    /// Building Windows from an editor left on Android (or the reverse) mixes Mobile_RPAsset (Forward) with
+    /// PC_RPAsset (Forward+): every "ForwardLit" variant of Simple Lit is stripped and all Lit objects
+    /// (floor, walls, primitives) vanish in the player. Refuse such a build; run Unity with -buildTarget.
+    /// </summary>
+    sealed class BuildTargetGuard : UnityEditor.Build.IPreprocessBuildWithReport
+    {
+        public int callbackOrder => -1000;
+
+        public static bool Matches(BuildTarget active, BuildTarget target) { return active == target; }
+
+        public static string Message(BuildTarget active, BuildTarget target)
+        {
+            return "[RHMG.BuildTargetGuard] active build target " + active + " != build target " + target
+                + ": URP would strip Lit shaders for the wrong platform. Re-run Unity with -buildTarget "
+                + (target == BuildTarget.Android ? "Android" : "Win64") + ".";
+        }
+
+        public void OnPreprocessBuild(UnityEditor.Build.Reporting.BuildReport report)
+        {
+            BuildTarget active = EditorUserBuildSettings.activeBuildTarget;
+            BuildTarget target = report.summary.platform;
+            Debug.Log("[RHMG.BuildTargetGuard] active=" + active + " build=" + target);
+            if (!Matches(active, target)) throw new BuildFailedException(Message(active, target));
         }
     }
 

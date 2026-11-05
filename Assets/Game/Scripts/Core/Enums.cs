@@ -56,7 +56,49 @@ namespace RHMG.Core
         Sentinel,
         CageWarden,
         SandQueen,
-        BlueHairGuy
+        BlueHairGuy,
+        // Plan 05 chapter enemies (appended; values 0..5 are frozen). 01-CONTRACTS section 2.
+        EmberImp,
+        SparkTurret,
+        AnvilGolem,
+        BookBat,
+        MirrorGhost,
+        InkSlime,
+        PlagueKnight,
+        BoneArcher,
+        BombMite,
+        ShadowWolf,
+        StarWisp,
+        VoidEye,
+        // Chapter guardians (01-CONTRACTS section 3). Keep these four LAST: EnemyKinds.IsBoss relies on the range.
+        ForgeGolem,
+        MirrorWitch,
+        CorruptKnight,
+        TwilightDrake
+    }
+
+    /// <summary>Behaviour family of an enemy (SPEC-P02 section 1). The runtime brain is chosen from this.</summary>
+    public enum EnemyArchetype
+    {
+        Chaser,
+        Shooter,
+        Charger,
+        Tank,
+        Flyer,
+        Teleporter,
+        Splitter,
+        Exploder,
+        Orbiter,
+        Beam,
+        Boss
+    }
+
+    /// <summary>Slot of a chapter roster that a regular enemy fills (01-CONTRACTS section 1).</summary>
+    public enum SpawnRole
+    {
+        Chaser,
+        Shooter,
+        Special
     }
 
     public enum DogTier

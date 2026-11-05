@@ -8,6 +8,7 @@ namespace RHMG.Runtime.Combat
     {
         private void HideWarning()
         {
+            HideShapeWarn();
             if (warning == null)
             {
                 return;
@@ -20,6 +21,7 @@ namespace RHMG.Runtime.Combat
         private void Die()
         {
             HideWarning();
+            UnVanish();
             CombatFeedback.Play("enemy_die");
             Vector3 position = transform.position;
             if (IsAnchor)
@@ -37,7 +39,7 @@ namespace RHMG.Runtime.Combat
                 brain.Cleanup();
             }
 
-            int xp = isDummy ? 0 : XpCurve.XpValue(Kind, Elite);
+            int xp = isDummy || isSplitChild ? 0 : XpCurve.XpValue(Catalog.GetEnemy(Kind).XpKind, Elite);
             if (xp > 0)
             {
                 world.Gems.Drop(position, xp);
@@ -49,6 +51,7 @@ namespace RHMG.Runtime.Combat
             }
 
             world.Enemies.Remove(this);
+            SplitOnDeath(position);
             OnKilled?.Invoke(this);
             if (billboard != null && billboard.GetComponent<SpriteDeformer>() != null && Kind != EnemyKind.BlueHairGuy)
             {
@@ -72,6 +75,7 @@ namespace RHMG.Runtime.Combat
         {
             StopAllCoroutines();
             HideWarning();
+            UnVanish();
             if (brain != null)
             {
                 brain.Cleanup();

@@ -63,6 +63,33 @@ namespace RHMG.Runtime.UI
         public static Sprite Ui(string id) => Load(ui, "RHMG/UI/", id);
         public static Sprite Icon(string id) => Load(icons, "RHMG/Icons/", id);
 
+        /// <summary>
+        /// Resources/RHMG/Portraits/[id]. The portrait PNGs are imported as plain textures (textureType Default),
+        /// so Resources.Load&lt;Sprite&gt; returns null for them: fall back to the texture and wrap it once.
+        /// </summary>
+        public static Sprite Portrait(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (portraits.TryGetValue(id, out Sprite cached)) return cached;
+            string path = "RHMG/Portraits/" + id;
+            Sprite sprite = Resources.Load<Sprite>(path);
+            if (sprite == null)
+            {
+                Texture2D texture = Resources.Load<Texture2D>(path);
+                if (texture != null)
+                {
+                    sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f), 100f);
+                    sprite.name = id;
+                }
+            }
+            portraits[id] = sprite;
+            if (sprite == null) Warn(path);
+            return sprite;
+        }
+
+        static readonly Dictionary<string, Sprite> portraits = new Dictionary<string, Sprite>();
+
         public static string IconIdFor(string contentId)
         {
             if (string.IsNullOrEmpty(contentId)) return null;

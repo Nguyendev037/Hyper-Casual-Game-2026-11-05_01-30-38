@@ -4,7 +4,7 @@ Mobile action game for Android, built with Unity 6 (URP, C#).
 
 ## Play the demo
 
-[Download the Android demo APK (v0.4.0, 57 MB)](https://media.githubusercontent.com/media/Nguyendev037/Hyper-Casual-Game-2026-11-05_01-30-38/main/Builds/Android/RedHairMagicGirl_demo_v0.4.0.apk)
+[Download the Android demo APK (v0.5.0, 61 MB)](https://media.githubusercontent.com/media/Nguyendev037/Hyper-Casual-Game-2026-11-05_01-30-38/main/Builds/Android/RedHairMagicGirl_demo_v0.5.0.apk)
 
 Install on an Android ARM64 device or an ARM64-compatible emulator. This is a demo for playtesting.
 
@@ -26,10 +26,10 @@ If you cloned before installing LFS, run `git lfs pull` inside the folder.
 4. Controls: drag on the lower half of the Game view (mouse or touch) to move; attacks are automatic. Use a portrait aspect ratio (e.g. 1080×1920) in the Game view.
 
 ## Build an Android APK
-- Menu **RHMG → Build Android APK** (ARM64, IL2CPP). Output: `Builds/Android/`.
+- Menu **RHMG → Build Android APK** (ARM64, IL2CPP). Output: `Builds/Android/`. Switch the Editor platform to Android first (File → Build Profiles); a build guard stops builds made from another active platform, because URP would strip the lit shaders (floor and walls disappear).
 - Command line:
   ```bash
-  Unity -batchmode -quit -projectPath "<project folder>" -executeMethod RHMG.EditorTools.BuildAndroid.Build
+  Unity -batchmode -quit -projectPath "<project folder>" -buildTarget Android -executeMethod RHMG.EditorTools.BuildAndroid.Build
   ```
 
 ## Tests

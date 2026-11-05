@@ -89,6 +89,7 @@ namespace RHMG.Runtime.UI
             if (id == "icon_spirit_bloom") id = "icon_spirit_growth";
             if (id.StartsWith("tile_") || id.StartsWith("gem_"))
                 return Resources.Load<Sprite>("RHMG/Sprites/" + id);
+            if (id.StartsWith("portrait_")) return UiSkin.Portrait(id);
             return id.StartsWith("icon_") ? UiSkin.Icon(id) : UiSkin.Ui(id);
         }
 
@@ -100,13 +101,40 @@ namespace RHMG.Runtime.UI
             return result;
         }
 
+        /// <summary>True when the document carries this screen and it passes validation (no warning if absent).</summary>
+        public static bool Has(string screen) => TryScreen(screen, out _);
+
+        /// <summary>Node id -> sprite id (null when the node has no image) in document order.</summary>
+        public static IDictionary<string, string> SpriteIds(string screen)
+        {
+            var result = new Dictionary<string, string>();
+            if (!TryScreen(screen, out List<object> list)) return result;
+            foreach (object node in list)
+            {
+                var spec = Map(node);
+                result[Str(spec, "id")] = Str(spec, "sprite");
+            }
+            return result;
+        }
+
+        /// <summary>Optional "fx" block of a screen: document["fx"][screen] when present, else document["fx"]. Null if none.</summary>
+        public static IDictionary<string, object> Fx(string screen)
+        {
+            if (!Load() || !document.TryGetValue("fx", out object block)) return null;
+            var map = block as Dictionary<string, object>;
+            if (map == null) return null;
+            if (map.TryGetValue(screen, out object inner) && inner is Dictionary<string, object> scoped) return scoped;
+            return map;
+        }
+
         static bool TryScreen(string screen, out List<object> list)
         {
             list = null;
             if (!Load()) return false;
             try
             {
-                list = (List<object>)Map(document["screens"])[screen];
+                if (!Map(document["screens"]).TryGetValue(screen, out object found)) return false;
+                list = (List<object>)found;
                 return Validate(screen, list);
             }
             catch (Exception error)
@@ -122,6 +150,7 @@ namespace RHMG.Runtime.UI
             { "levelup", "dim_bg,modal_title,modal_subtitle,card_1,card_1_icon,card_1_name,card_1_rank,card_1_desc,card_2,card_2_icon,card_2_name,card_2_rank,card_2_desc,card_3,card_3_icon,card_3_name,card_3_rank,card_3_desc,btn_confirm_card" },
             { "station", "station_bg,panel_station_modal,st_title,st_subtitle,st_slot_1,st_icon_1,st_name_1,st_desc_1,st_slot_2,st_icon_2,st_name_2,st_desc_2,st_slot_3,st_icon_3,st_name_3,st_desc_3,btn_leave_station" },
             { "wardrobe", "wardrobe_bg,btn_wardrobe_back,wardrobe_title,tab_hair,tab_outfit,tab_staff,preview_dais,girl_preview_container,item_1_card,item_1_name,badge_equipped_tag,item_2_card,item_2_name,item_3_card,item_3_name,btn_equip_action" },
+            { "title", "btn_menu_start,btn_menu_continue,btn_menu_wardrobe,btn_menu_spirits,btn_menu_settings" },
             { "menu", "menu_bg,game_logo_text,game_subtitle_text,btn_menu_start,btn_menu_continue,btn_menu_wardrobe,btn_menu_spirits,btn_menu_settings,menu_version" },
             { "pause", "pause_dim,pause_panel,pause_title,pause_quote,pause_stats_card,recap_floor_txt,recap_spirits_txt,recap_cards_txt,recap_gold_txt,recap_time_txt,btn_pause_resume,btn_pause_restart,btn_pause_exit" },
             { "result", "result_dim,result_panel,result_badge_top,result_title,result_subtitle,result_stat_card,stat_floor_lbl,stat_floor_val,stat_level_lbl,stat_level_val,stat_gold_lbl,stat_gold_val,stat_kills_lbl,stat_kills_val,stat_spirits_lbl,stat_spirits_val,stat_time_lbl,stat_time_val,btn_result_again,btn_result_menu" },
@@ -166,8 +195,9 @@ namespace RHMG.Runtime.UI
                     if (!(node["align"] is string alignment) || !Enum.TryParse(alignment, out TextAnchor anchor) ||
                         !Enum.IsDefined(typeof(TextAnchor), anchor)) throw new FormatException(id + ": invalid alignment");
                 }
-                foreach (string id in required[screen].Split(','))
-                    if (!ids.Contains(id)) throw new FormatException("THIẾU: " + screen + "/" + id);
+                if (required.TryGetValue(screen, out string requiredIds))
+                    foreach (string id in requiredIds.Split(','))
+                        if (!ids.Contains(id)) throw new FormatException("THIẾU: " + screen + "/" + id);
                 return true;
             }
             catch (Exception error)

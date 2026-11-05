@@ -104,6 +104,35 @@ namespace RHMG.Runtime
             return true;
         }
 
+        const float ResultTextMargin = 24f;
+
+        // Long (VI) spirit names touched the card edge: move the label into an inset child, keep best-fit min 24.
+        static void InsetText(Text source, float margin)
+        {
+            if (source == null) return;
+            var host = (RectTransform)source.transform;
+            var child = new GameObject("Inset", typeof(RectTransform), typeof(Text));
+            var rect = (RectTransform)child.transform;
+            rect.SetParent(host, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(margin, 0f);
+            rect.offsetMax = new Vector2(-margin, 0f);
+            Text text = child.GetComponent<Text>();
+            text.font = source.font;
+            text.fontSize = source.resizeTextMaxSize;
+            text.color = source.color;
+            text.alignment = source.alignment;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 24;
+            text.resizeTextMaxSize = source.resizeTextMaxSize;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+            text.raycastTarget = false;
+            text.text = source.text;
+            source.text = string.Empty;
+        }
+
         bool DrawLayoutResult(bool defeated)
         {
             if (!Layout("result")) return false;
@@ -118,7 +147,7 @@ namespace RHMG.Runtime
             LayoutText("stat_kills_lbl", "Linh thạch");
             LayoutText("stat_kills_val", GemPickupsThisRun.ToString());
             LayoutText("stat_spirits_lbl", "Tinh linh");
-            LayoutText("stat_spirits_val", RunSpiritsSummary());
+            InsetText(LayoutText("stat_spirits_val", RunSpiritsSummary()), ResultTextMargin);
             LayoutText("stat_time_lbl", "Thời gian");
             LayoutText("stat_time_val", RunDuration());
             LayoutAction("btn_result_again", "Chơi lại", defeated ? (Action)RestartAfterDefeat : StartRun);

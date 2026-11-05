@@ -58,7 +58,48 @@ namespace RHMG.Runtime.Visuals
             Stride = 0.03f, HemSway = 0f, HairSway = 0f, BreathAmp = 0.02f
         };
 
-        /// <summary>Profile for a sprite asset name (CharacterSprites ids); null = no deformation.</summary>
+        // Chapter enemies (SPEC-P02 section 2): archetype to family. Imp/archer biped, mite crawler, wolf quadruped,
+        // bat/ghost/wisp floating, turret/void eye/slime pulsing, golem/knight heavy.
+        public static readonly AnimProfile Imp = new AnimProfile
+        {
+            Kind = AnimKind.Biped, Crowd = true, Cols = 6, Rows = 8, LegTop = 0.28f, HipY = 0.32f, ChestY = 0.5f, HeadY = 0.66f,
+            StepHz = 9f, LegLift = 0.03f, Stride = 0.03f, HairSway = 0f, HemSway = 0f, BreathAmp = 0.03f
+        };
+
+        public static readonly AnimProfile Archer = new AnimProfile
+        {
+            Kind = AnimKind.Biped, Crowd = true, Cols = 6, Rows = 10, LegTop = 0.26f, StepHz = 6f, LegLift = 0.025f,
+            Stride = 0.03f, HairSway = 0.02f, HemSway = 0.03f, BreathAmp = 0.02f
+        };
+
+        public static readonly AnimProfile Mite = new AnimProfile
+        {
+            Kind = AnimKind.Crawler, Crowd = true, Cols = 6, Rows = 6, LegTop = 0.30f, StepHz = 16f, Stride = 0.018f
+        };
+
+        public static readonly AnimProfile Wolf = new AnimProfile
+        {
+            Kind = AnimKind.Quadruped, Crowd = true, Cols = 6, Rows = 8, LegTop = 0.30f, HipY = 0.32f, ChestY = 0.46f,
+            HeadY = 0.62f, StepHz = 8f, LegLift = 0.04f, Stride = 0.035f, HairSway = 0.03f, HemSway = 0f, BreathAmp = 0.02f
+        };
+
+        public static readonly AnimProfile Flyer = new AnimProfile
+        {
+            Kind = AnimKind.Floating, Crowd = true, Cols = 6, Rows = 6, FloatAmp = 0.12f, PulseAmp = 0.05f, HairSway = 0.05f
+        };
+
+        public static readonly AnimProfile Slime = new AnimProfile
+        {
+            Kind = AnimKind.Eye, Crowd = true, Cols = 6, Rows = 8, PulseAmp = 0.09f
+        };
+
+        public static readonly AnimProfile Golem = new AnimProfile
+        {
+            Kind = AnimKind.Heavy, Crowd = true, Cols = 6, Rows = 10, LegTop = 0.22f, StepHz = 1.6f, LegLift = 0.03f,
+            Stride = 0.025f, HemSway = 0f, HairSway = 0f, BreathAmp = 0.02f
+        };
+
+                /// <summary>Profile for a sprite asset name (CharacterSprites ids); null = no deformation.</summary>
         public static AnimProfile ForSpriteName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
@@ -69,6 +110,22 @@ namespace RHMG.Runtime.Visuals
             if (name == "enemy_beetle") return Beetle;
             if (name == "enemy_eye") return Eye;
             if (name == "enemy_sentinel") return Sentinel;
+            switch (name)
+            {
+                case "enemy_ember_imp": return Imp;
+                case "enemy_bone_archer": return Archer;
+                case "enemy_bomb_mite": return Mite;
+                case "enemy_shadow_wolf": return Wolf;
+                case "enemy_book_bat":
+                case "enemy_mirror_ghost":
+                case "enemy_star_wisp": return Flyer;
+                case "enemy_spark_turret":
+                case "enemy_void_eye": return Eye;
+                case "enemy_ink_slime": return Slime;
+                case "enemy_anvil_golem":
+                case "enemy_plague_knight": return Golem;
+            }
+
             if (name == "enemy_warden" || name.StartsWith("boss_")) return name == "boss_anchor" ? null : Boss;
             return null;
         }

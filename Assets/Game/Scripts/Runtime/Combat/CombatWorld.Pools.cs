@@ -24,6 +24,7 @@ namespace RHMG.Runtime.Combat
 
         private Projectile CreateProjectile()
         {
+            VfxHub.Ensure(transform);
             GameObject view = VfxFactory.Projectile(Color.white, CombatTuning.ProjectileVisualRadius);
             view.name = "PooledProjectile";
             view.transform.SetParent(transform, false);
@@ -66,7 +67,7 @@ namespace RHMG.Runtime.Combat
 
         private void PrewarmPools()
         {
-            Projectile[] shotItems = new Projectile[60];
+            Projectile[] shotItems = new Projectile[100];
             for (int i = 0; i < shotItems.Length; i++)
             {
                 shotItems[i] = projectilePool.Get();
@@ -96,6 +97,7 @@ namespace RHMG.Runtime.Combat
 
         private void PrewarmEffects()
         {
+            VfxHub.Ensure(transform);
             PrewarmWarnings(discWarnings, 12);
             PrewarmWarnings(fanWarnings, 12);
             PrewarmWarnings(dashWarnings, 12);

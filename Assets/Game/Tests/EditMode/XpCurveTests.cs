@@ -48,7 +48,7 @@ namespace RHMG.Core.Tests
             int wardens = 0;
             for (int f = 1; f <= 100; f++)
             {
-                if (FloorPlan.BossKind(f) == EnemyKind.CageWarden)
+                if (FloorPlan.Kind(f) == FloorKind.Guardian && EnemyKinds.IsGuardian(FloorPlan.BossKind(f).Value))
                 {
                     wardens++;
                 }

@@ -19,7 +19,7 @@ namespace RHMG.Runtime
             audioHub.PlayMusic("music_calm");
             Time.timeScale = 1f;
             Clear();
-            if (DrawLayoutMenu()) return;
+            if (DrawLayoutTitle() || DrawLayoutMenu()) return;
             Image backdrop = UiKit.Background(root, "bg_menu");
             backdrop.transform.SetAsFirstSibling();
             Image logoImage = UiKit.Circle(root, "Logo", Color.white);

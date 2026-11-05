@@ -9,14 +9,15 @@ namespace RHMG.Runtime.Visuals
         public static GameObject Build(EnemyKind kind, Transform parent)
         {
             GameObject root = new GameObject(kind.ToString());
+            EnemyKind shape = Catalog.GetEnemy(kind).PoolKind; // chapter kinds reuse the primitive rig of their role
             if (parent != null) root.transform.SetParent(parent, false);
 
             // Regular enemies grow 1.25x; the CageWarden keeps its 2.5x boss silhouette.
-            bool isWarden = kind == EnemyKind.CageWarden;
+            bool isWarden = shape == EnemyKind.CageWarden;
             bool newBoss = kind == EnemyKind.SandQueen || kind == EnemyKind.BlueHairGuy;
             root.transform.localScale = Vector3.one * (isWarden ? 2.5f : (newBoss ? 3.25f : 1.25f));
 
-            switch (kind)
+            switch (shape)
             {
                 case EnemyKind.SandBeetle:
                     Prim.Make(PrimitiveType.Sphere, root.transform, new Vector3(0f, 0.22f, 0f), new Vector3(0.70f, 0.32f, 0.75f), Palette.Sand, "Body");
@@ -89,10 +90,14 @@ namespace RHMG.Runtime.Visuals
                 CharacterSprites.SetPrimitivesVisible(root.transform, null, false);
                 SpriteBillboard billboard = SpriteBillboard.Create(root.transform, sprite, CharacterSprites.EnemyHeight(kind));
                 billboard.SetMotion(0f);
+                if (CharacterSprites.UsesFallback(kind))
+                {
+                    billboard.gameObject.AddComponent<EnemyTintKeeper>().Tint = CharacterSprites.FallbackTint(kind);
+                }
             }
 
             float shadowRadius = 0.50f;
-            switch (kind)
+            switch (shape)
             {
                 case EnemyKind.SandEye:
                     shadowRadius = 0.45f;
@@ -109,6 +114,21 @@ namespace RHMG.Runtime.Visuals
             BlobShadow.Create(root.transform, shadowRadius);
 
             return root;
+        }
+    }
+
+    /// <summary>Keeps the chapter tint of a fallback sprite (C3). Runs before SpriteBillboard.LateUpdate so the deformer mesh
+    /// picks it up; a hit flash (non-white colour) is left alone and the tint returns when the flash ends.</summary>
+    [DefaultExecutionOrder(-100)]
+    internal sealed class EnemyTintKeeper : MonoBehaviour
+    {
+        public Color Tint = Color.white;
+        private SpriteRenderer m_Renderer;
+
+        private void LateUpdate()
+        {
+            if (m_Renderer == null) m_Renderer = GetComponent<SpriteRenderer>();
+            if (m_Renderer != null && m_Renderer.color == Color.white) m_Renderer.color = Tint;
         }
     }
 }

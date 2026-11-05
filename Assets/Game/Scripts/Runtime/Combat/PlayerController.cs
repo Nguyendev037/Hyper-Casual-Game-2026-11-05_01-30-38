@@ -113,9 +113,9 @@ namespace RHMG.Runtime.Combat
             {
                 Vector3 direction = CombatMath.Direction(Rig.StaffTip.position, target.transform.position);
                 Rig.PlayCast();
-                spellRing.transform.position = target.transform.position + Vector3.up * 0.08f;
-                spellRing.SetActive(true);
+                // User 2026-11-06: no dashed circle on the targeted enemy when shooting (spellRing stays hidden).
                 int count = Mathf.Max(1, Stats.ProjectileCount);
+                VfxHub.Muzzle(Rig.StaffTip.position, VfxStyles.Tint(VfxStyle.Arcane));
                 for (int i = 0; i < count; i++)
                 {
                     float offset = (i - (count - 1) * 0.5f) * CombatTuning.MultishotSpreadDegrees;
@@ -123,7 +123,7 @@ namespace RHMG.Runtime.Combat
                     bool center = Mathf.Abs(offset) < 0.01f;
                     Projectile shot = world.Fire(ProjectileOwner.Player, Rig.StaffTip.position, shotDirection,
                         Stats.StaffDamage, CombatTuning.PlayerProjectileSpeed, center ? target : null,
-                        Palette.LightGold);
+                        Palette.LightGold, VfxStyle.Arcane);
                     shot.SetRange(Stats.Range);
                     shot.SetPierce(Stats.Pierce);
                 }

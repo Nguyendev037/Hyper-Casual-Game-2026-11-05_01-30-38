@@ -151,7 +151,7 @@ namespace RHMG.Runtime.Combat
                 ElementMultiplier(d);
             Projectile projectile = world.Fire(ProjectileOwner.Player, position,
                 CombatMath.Direction(position, target.transform.position), damage,
-                CombatTuning.SpiritProjectileSpeed, target, Palette.ForElement(d.Element));
+                CombatTuning.SpiritProjectileSpeed, target, Palette.ForElement(d.Element), VfxStyles.ForSpirit(d));
             projectile.SetRange(owner.Stats.Range);
             projectile.SetImpact(d.AutoRadius, d.AutoSlow, d.AutoBurnDps * owner.Stats.BurnPower,
                 CombatTuning.AutoEffectDuration);
@@ -207,7 +207,8 @@ namespace RHMG.Runtime.Combat
                 owner.Health.Heal(d.CommandHeal * owner.Stats.WoodHealPower);
             }
 
-            world.PlayBurst(Palette.ForElement(d.Element), Mathf.Max(0.8f, d.CommandRadius), center);
+            // User 2026-11-06: no circle on the enemy — the skill shows as an element-tinted explosion sprite only.
+            VfxHub.Impact(center, VfxStyles.Tint(VfxStyles.ForSpirit(d)), 2.2f);
             float cooldownScale = owner.Stats.CommandCooldown / Catalog.BaseCommandCooldown;
             s.SkillTimer = d.CommandCooldown * SurvivorTuning.SpiritCooldownMult(s.Level) * cooldownScale;
             lastCast = world.SimTime;

@@ -111,6 +111,7 @@ namespace RHMG.Runtime
 
             combat.StartFloor(run.CurrentFloor);
             combat.Running = true;
+            ApplyWorldTheme();
             DrawHud();
             if (run.CurrentFloor == 1 && !save.tutorialSeen && !tutorialDisplayed)
             {

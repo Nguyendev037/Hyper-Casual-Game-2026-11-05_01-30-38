@@ -188,7 +188,21 @@ namespace RHMG.Runtime.Combat
         public EnemyController SpawnEnemy(RHMG.Core.EnemyKind kind, Vector3 position, float hpMult = 1f,
             float dmgMult = 1f, bool elite = false)
         {
-            EnemyController enemy = enemyPools[(int)kind].Get();
+            // Review G8 #1: chapter kinds borrow a role pool (EnemyDefinition.PoolKind); route them through EnemySpawner
+            // so (int)kind never indexes past the 7 pools (EmberImp == 6 would otherwise hit the anchor pool).
+            RHMG.Core.EnemyDefinition definition = RHMG.Core.Catalog.GetEnemy(kind);
+            if (definition != null && definition.PoolKind != kind && EnemyController.PendingKind == null)
+            {
+                return EnemySpawner.Spawn(this, kind, position, hpMult, dmgMult, elite);
+            }
+
+            int poolIndex = (int)kind;
+            if (poolIndex < 0 || poolIndex >= enemyPools.Length || poolIndex == EnemyController.AnchorPoolIndex)
+            {
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, "No enemy pool for this kind; use SpawnAnchor/EnemySpawner.");
+            }
+
+            EnemyController enemy = enemyPools[poolIndex].Get();
             enemy.Spawn(kind, position, hpMult, dmgMult, elite);
             Enemies.Add(enemy);
             return enemy;
@@ -203,7 +217,7 @@ namespace RHMG.Runtime.Combat
         }
 
         public Projectile Fire(ProjectileOwner owner, Vector3 position, Vector3 direction, float damage, float speed,
-            EnemyController target = null, Color? color = null)
+            EnemyController target = null, Color? color = null, VfxStyle style = VfxStyle.Auto)
         {
             while (projectiles.Count >= CombatTuning.MaxProjectiles)
             {
@@ -213,7 +227,7 @@ namespace RHMG.Runtime.Combat
 
             Projectile projectile = projectilePool.Get();
             projectile.Born = ++birthSequence;
-            projectile.Fire(owner, position, direction, damage, speed, target, color);
+            projectile.Fire(owner, position, direction, damage, speed, target, color, style);
             projectiles.Add(projectile);
             return projectile;
         }

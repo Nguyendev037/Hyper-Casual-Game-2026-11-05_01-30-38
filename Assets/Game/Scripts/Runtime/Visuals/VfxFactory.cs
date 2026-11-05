@@ -7,36 +7,20 @@ namespace RHMG.Runtime.Visuals
     /// <summary>Factory for procedural visual effects: projectiles, telegraphs, spell rings, and bursts.</summary>
     public static class VfxFactory
     {
+        /// <summary>Pooled projectile view (SPEC-P03): sprite core + trail, no primitive. Colour comes from VfxStyle.</summary>
         public static GameObject Projectile(Color c, float radius)
         {
             radius = Mathf.Max(0.05f, radius);
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "Projectile";
-
-            Collider col = go.GetComponent<Collider>();
-            if (col != null)
-            {
-                if (Application.isPlaying) Object.Destroy(col);
-                else Object.DestroyImmediate(col);
-            }
-
-            go.transform.localScale = Vector3.one * (radius * 2f);
-
-            MeshRenderer mr = go.GetComponent<MeshRenderer>();
-            if (mr != null)
-            {
-                mr.sharedMaterial = MaterialLibrary.Unlit(c);
-                mr.shadowCastingMode = ShadowCastingMode.Off;
-            }
-
+            GameObject go = new GameObject("Projectile");
             TrailRenderer trail = go.AddComponent<TrailRenderer>();
             trail.time = 0.15f;
             trail.startWidth = radius * 1.8f;
             trail.endWidth = 0.01f;
-            trail.sharedMaterial = MaterialLibrary.Unlit(c);
+            trail.sharedMaterial = VfxAssets.Trail();
             trail.minVertexDistance = 0.05f;
             trail.shadowCastingMode = ShadowCastingMode.Off;
-
+            VfxProjectileView view = VfxProjectileView.Create(go, radius);
+            view.SetStyle(VfxStyles.Resolve(VfxStyle.Auto, ProjectileOwner.Player), 1f);
             return go;
         }
 

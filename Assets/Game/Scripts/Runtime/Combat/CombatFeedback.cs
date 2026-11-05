@@ -66,7 +66,8 @@ namespace RHMG.Runtime.Combat
             }
         }
 
-        public static void ShowDamage(Vector3 position, float damage)
+        /// <summary>Floating damage number. crit = gold, bigger number plus the crit star (Core has no crit roll yet).</summary>
+        public static void ShowDamage(Vector3 position, float damage, bool crit = false)
         {
             if (instance == null || instance.numberPool == null || instance.activeNumbers.Count >= 16)
             {
@@ -79,8 +80,15 @@ namespace RHMG.Runtime.Combat
                 return;
             }
 
+            VfxHub.HitStop(damage, crit);
             FloatingDamageNumber number = instance.numberPool.Get();
             number.transform.position = position;
+            instance.StyleNumber(number, crit);
+            if (crit)
+            {
+                VfxHub.Crit(position + Vector3.up * 0.3f);
+            }
+
             number.SetText(Mathf.RoundToInt(damage).ToString());
             number.Begin(2f);
             instance.activeNumbers.Add(number);
@@ -93,6 +101,18 @@ namespace RHMG.Runtime.Combat
             {
                 shakeRemaining = 0f;
             }
+        }
+
+        private void StyleNumber(FloatingDamageNumber number, bool crit)
+        {
+            TextMesh text = number.GetComponent<TextMesh>();
+            if (text == null)
+            {
+                return;
+            }
+
+            text.characterSize = crit ? 0.14f : 0.08f;
+            text.color = crit ? new Color(1f, 0.82f, 0.1f, 1f) : Palette.LightGold;
         }
 
         private FloatingDamageNumber CreateNumber()

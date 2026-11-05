@@ -176,6 +176,14 @@ namespace RHMG.Core
         public readonly float MoveSpeed;
         public readonly float Radius;
         public readonly float TelegraphTime;
+        /// <summary>Behaviour family (SPEC-P02 section 1).</summary>
+        public readonly EnemyArchetype Archetype;
+        /// <summary>Chapter 0..4 the enemy belongs to (01-CONTRACTS section 1).</summary>
+        public readonly int Chapter;
+        /// <summary>Legacy kind whose runtime pool hosts this kind (the pool array is sized for kinds 0..5 + anchor).</summary>
+        public readonly EnemyKind PoolKind;
+        /// <summary>Kind whose XP value this one drops: chapter enemies keep the plan 04 budget of their role.</summary>
+        public readonly EnemyKind XpKind;
 
         public EnemyDefinition(
             EnemyKind kind,
@@ -186,8 +194,16 @@ namespace RHMG.Core
             float attackInterval,
             float moveSpeed,
             float radius,
-            float telegraphTime)
+            float telegraphTime,
+            EnemyArchetype archetype = EnemyArchetype.Chaser,
+            int chapter = 0,
+            EnemyKind? poolKind = null,
+            EnemyKind? xpKind = null)
         {
+            Archetype = archetype;
+            Chapter = chapter;
+            PoolKind = poolKind ?? kind;
+            XpKind = xpKind ?? kind;
             Kind = kind;
             DisplayName = displayName;
             MaxHp = maxHp;
@@ -197,6 +213,22 @@ namespace RHMG.Core
             MoveSpeed = moveSpeed;
             Radius = radius;
             TelegraphTime = telegraphTime;
+        }
+    }
+
+    /// <summary>Kind classification helpers (replaces the old "Kind >= CageWarden" comparison).</summary>
+    public static class EnemyKinds
+    {
+        /// <summary>Cage Warden and the four chapter guardians: same attack kit, phase-less, one boss bar.</summary>
+        public static bool IsGuardian(EnemyKind kind)
+        {
+            return kind == EnemyKind.CageWarden || (kind >= EnemyKind.ForgeGolem && kind <= EnemyKind.TwilightDrake);
+        }
+
+        /// <summary>Any boss: guardians, Sand Queen, Blue Hair Guy.</summary>
+        public static bool IsBoss(EnemyKind kind)
+        {
+            return IsGuardian(kind) || kind == EnemyKind.SandQueen || kind == EnemyKind.BlueHairGuy;
         }
     }
 

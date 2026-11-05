@@ -15,6 +15,13 @@ namespace RHMG.Runtime
             automationActive = true;
             yield return new WaitForSecondsRealtime(0.5f);
             yield return Capture("00_menu");
+            // SPEC-P01 section 4: four title frames 0.5 s apart prove the key-art animation runs.
+            yield return Capture("00_title");
+            for (int frame = 1; frame <= 3; frame++)
+            {
+                yield return new WaitForSecondsRealtime(0.5f);
+                yield return Capture("00_title_" + frame);
+            }
             StartRun();
             combat.GodMode = true;
             float until = Time.realtimeSinceStartup + 4f;
@@ -48,6 +55,21 @@ namespace RHMG.Runtime
             yield return new WaitForSecondsRealtime(0.4f);
             yield return Capture("04_wardrobe");
             SetPaused(false);
+            // SPEC-P04 section 3: one combat frame per chapter floor set (the floor-1 frame is 01_combat).
+            foreach (int chapterFloor in new[] { 21, 41, 61, 81 })
+            {
+                DebugJumpToFloor(chapterFloor);
+                EnterCombat(true);
+                combat.GodMode = true;
+                until = Time.realtimeSinceStartup + 2f;
+                while (Time.realtimeSinceStartup < until)
+                {
+                    combat.SetMoveInput(new Vector2(0.2f, 0.8f));
+                    yield return null;
+                }
+                combat.SetMoveInput(Vector2.zero);
+                yield return Capture("08_combat_f" + chapterFloor);
+            }
             DebugJumpToFloor(100);
             EnterCombat(true);
             combat.GodMode = true;

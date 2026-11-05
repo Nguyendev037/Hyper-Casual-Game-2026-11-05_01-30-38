@@ -44,8 +44,61 @@ namespace RHMG.Runtime.Visuals
             }
         }
 
+        /// <summary>Image id of a chapter enemy or guardian (01-CONTRACTS sections 2-3); null for the original kinds.</summary>
+        public static string ChapterSpriteId(EnemyKind kind)
+        {
+            switch (kind)
+            {
+                case EnemyKind.EmberImp: return "enemy_ember_imp";
+                case EnemyKind.SparkTurret: return "enemy_spark_turret";
+                case EnemyKind.AnvilGolem: return "enemy_anvil_golem";
+                case EnemyKind.BookBat: return "enemy_book_bat";
+                case EnemyKind.MirrorGhost: return "enemy_mirror_ghost";
+                case EnemyKind.InkSlime: return "enemy_ink_slime";
+                case EnemyKind.PlagueKnight: return "enemy_plague_knight";
+                case EnemyKind.BoneArcher: return "enemy_bone_archer";
+                case EnemyKind.BombMite: return "enemy_bomb_mite";
+                case EnemyKind.ShadowWolf: return "enemy_shadow_wolf";
+                case EnemyKind.StarWisp: return "enemy_star_wisp";
+                case EnemyKind.VoidEye: return "enemy_void_eye";
+                case EnemyKind.ForgeGolem: return "boss_forge_golem";
+                case EnemyKind.MirrorWitch: return "boss_mirror_witch";
+                case EnemyKind.CorruptKnight: return "boss_corrupt_knight";
+                case EnemyKind.TwilightDrake: return "boss_twilight_drake";
+                default: return null;
+            }
+        }
+
+        /// <summary>True when the chapter image is missing and the chapter-0 sprite of the same role is used instead (C3).</summary>
+        public static bool UsesFallback(EnemyKind kind)
+        {
+            string id = ChapterSpriteId(kind);
+            return id != null && Load(id) == null;
+        }
+
+        /// <summary>Chapter tint of the fallback sprite: 1 ember orange, 2 ink violet, 3 sick green, 4 deep purple.</summary>
+        public static Color FallbackTint(EnemyKind kind)
+        {
+            switch (Catalog.GetEnemy(kind).Chapter)
+            {
+                case 1: return new Color(1f, 0.62f, 0.35f, 1f);
+                case 2: return new Color(0.72f, 0.55f, 0.95f, 1f);
+                case 3: return new Color(0.6f, 0.95f, 0.55f, 1f);
+                case 4: return new Color(0.55f, 0.38f, 0.8f, 1f);
+                default: return Color.white;
+            }
+        }
+
         public static Sprite Enemy(EnemyKind kind)
         {
+            string chapterId = ChapterSpriteId(kind);
+            if (chapterId != null)
+            {
+                Sprite own = Load(chapterId);
+                if (own != null) return own;
+                kind = Catalog.GetEnemy(kind).PoolKind;
+            }
+
             switch (kind)
             {
                 case EnemyKind.SandEye: return Load("enemy_eye");
@@ -87,8 +140,30 @@ namespace RHMG.Runtime.Visuals
 
         public static float EnemyHeight(EnemyKind kind)
         {
+            float h = EnemyBaseHeight(kind);
+            return UsesFallback(kind) ? EnemyBaseHeight(Catalog.GetEnemy(kind).PoolKind) * 1.1f : h;
+        }
+
+        private static float EnemyBaseHeight(EnemyKind kind)
+        {
             switch (kind)
             {
+                case EnemyKind.EmberImp: return 1.5f;
+                case EnemyKind.SparkTurret: return 1.7f;
+                case EnemyKind.AnvilGolem: return 3.0f;
+                case EnemyKind.BookBat: return 1.5f;
+                case EnemyKind.MirrorGhost: return 1.9f;
+                case EnemyKind.InkSlime: return 1.5f;
+                case EnemyKind.PlagueKnight: return 2.7f;
+                case EnemyKind.BoneArcher: return 2.2f;
+                case EnemyKind.BombMite: return 1.3f;
+                case EnemyKind.ShadowWolf: return 1.7f;
+                case EnemyKind.StarWisp: return 1.6f;
+                case EnemyKind.VoidEye: return 1.9f;
+                case EnemyKind.ForgeGolem: return 5.4f;
+                case EnemyKind.MirrorWitch: return 4.8f;
+                case EnemyKind.CorruptKnight: return 5.2f;
+                case EnemyKind.TwilightDrake: return 5.6f;
                 case EnemyKind.SandEye: return 1.7f;
                 case EnemyKind.Sentinel: return 2.7f;
                 case EnemyKind.CageWarden: return 4.8f;

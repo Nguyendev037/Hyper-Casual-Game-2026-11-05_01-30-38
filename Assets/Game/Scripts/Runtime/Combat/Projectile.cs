@@ -31,6 +31,8 @@ namespace RHMG.Runtime.Combat
         private float impactDuration;
         private int pierceLeft;
         private float healOnHit;
+        private VfxProjectileView view;
+        private VfxStyle lookStyle;
         private readonly List<EnemyController> hitList = new List<EnemyController>(4);
 
         public void Init(CombatWorld ownerWorld, Action<Projectile> releaseAction)
@@ -40,7 +42,7 @@ namespace RHMG.Runtime.Combat
         }
 
         public void Fire(ProjectileOwner owner, Vector3 position, Vector3 direction, float damage, float speed,
-            EnemyController target = null, Color? color = null)
+            EnemyController target = null, Color? color = null, VfxStyle style = VfxStyle.Auto)
         {
             Owner = owner;
             transform.position = position;
@@ -58,13 +60,26 @@ namespace RHMG.Runtime.Combat
             pierceLeft = 0;
             healOnHit = 0f;
             hitList.Clear();
-            Renderer renderer = GetComponentInChildren<Renderer>();
-            if (renderer != null && color.HasValue)
+            gameObject.SetActive(true);
+            ApplyLook(VfxStyles.Resolve(style, owner), damage);
+        }
+
+        // Dmg 5..60 maps to a 0.85x..1.5x core; the colour argument of old callers is replaced by the style.
+        private void ApplyLook(VfxStyle style, float damage)
+        {
+            if (view == null)
             {
-                renderer.sharedMaterial = MaterialLibrary.Unlit(color.Value);
+                view = GetComponent<VfxProjectileView>();
             }
 
-            gameObject.SetActive(true);
+            if (view == null)
+            {
+                return;
+            }
+
+            lookStyle = style;
+            view.SetStyle(style, Mathf.Lerp(0.85f, 1.5f, Mathf.InverseLerp(5f, 60f, damage)));
+            view.Begin();
         }
 
         public void SetImpact(float radius, float slow, float burnDps, float duration)
@@ -140,6 +155,7 @@ namespace RHMG.Runtime.Combat
                 CombatTuning.PlayerRadius))
             {
                 world.Player.TakeDamage(Damage, transform.position);
+                VfxHub.Impact(transform.position, VfxStyles.TrailTint(lookStyle));
                 release?.Invoke(this);
                 return;
             }
@@ -200,14 +216,31 @@ namespace RHMG.Runtime.Combat
                 }
             }
 
+            if (hit)
+            {
+                PlayImpactFx();
+            }
+
             if (hit && healOnHit > 0f && world.Player != null)
             {
                 world.Player.Health.Heal(healOnHit);
             }
         }
 
+        private void PlayImpactFx()
+        {
+            Color tint = VfxStyles.Tint(lookStyle);
+            // User 2026-11-06: no circle drawn on the enemy when shots land — explosion sprite + sparks only.
+            VfxHub.Impact(transform.position, tint, splashRadius > 0f ? 1.4f : 1f);
+        }
+
         public void ResetPool()
         {
+            if (view != null)
+            {
+                view.End();
+            }
+
             Target = null;
             splashRadius = 0f;
             pierceLeft = 0;

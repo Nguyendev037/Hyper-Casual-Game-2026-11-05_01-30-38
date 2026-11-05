@@ -102,12 +102,18 @@ namespace RHMG.Runtime
             bossLabel = LayoutText("boss_title", bossFloor ? BossNameFor(run.CurrentFloor) : string.Empty);
             layout["boss_bar_frame"].gameObject.SetActive(bossFloor);
             LayoutAction("btn_pause", null, Pause);
+            HudV2Extras();
             for (int i = 0; i < 3; i++)
             {
                 string id = "spirit_dock_" + (i + 1);
                 bool active = run != null && i < run.Spirits.Slots.Count;
                 layout[id].gameObject.SetActive(active);
-                if (active) LayoutIcon(id, UiSkin.Icon(UiSkin.IconIdFor(run.Spirits.Slots[i].spiritId)));
+                if (!active) continue;
+                Sprite icon = UiSkin.Icon(UiSkin.IconIdFor(run.Spirits.Slots[i].spiritId));
+                // v2 docks keep their frame art and carry the icon in a child; v1 docks are the icon itself.
+                if (layout.ContainsKey(id + "_icon")) LayoutIcon(id + "_icon", icon);
+                else LayoutIcon(id, icon);
+                TintLevelBorder(id, run.Spirits.Slots[i].level);
             }
             // Share the approved timer rectangle for day/night and floor time; no extra overlay.
             clockFill = null;

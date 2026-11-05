@@ -130,7 +130,7 @@ namespace RHMG.Runtime.Combat
             }
 
             Vector3 position = new Vector3(0f, 0f, BossSpawnZ);
-            world.SpawnEnemy(boss.Value, position, budget.HpMult, budget.DmgMult, false);
+            EnemySpawner.Spawn(world, boss.Value, position, budget.HpMult, budget.DmgMult, false);
         }
 
         // Even spread over 80% of the floor time (boss floors: over a fixed 60 s window).
@@ -146,23 +146,32 @@ namespace RHMG.Runtime.Combat
                     return;
                 }
 
-                SpawnOne();
-                spawned++;
+                spawned += SpawnOne();
             }
         }
 
-        private void SpawnOne()
+        /// <summary>Spawns one weighted enemy of the chapter roster; returns how many bodies it counted (wolves come in pairs).</summary>
+        private int SpawnOne()
         {
             float total = budget.BeetleW + budget.EyeW + budget.SentinelW;
             float roll = UnityEngine.Random.value * total;
-            EnemyKind enemyKind = EnemyKind.SandBeetle;
+            EnemyKind enemyKind = budget.ChaserKind;
             if (roll >= budget.BeetleW)
             {
-                enemyKind = roll < budget.BeetleW + budget.EyeW ? EnemyKind.SandEye : EnemyKind.Sentinel;
+                enemyKind = roll < budget.BeetleW + budget.EyeW ? budget.ShooterKind : budget.SpecialKind;
             }
 
             bool elite = budget.EliteChance > 0f && UnityEngine.Random.value < budget.EliteChance;
-            world.SpawnEnemy(enemyKind, world.PickSpawnPosition(), budget.HpMult, budget.DmgMult, elite);
+            Vector3 spot = world.PickSpawnPosition();
+            EnemySpawner.Spawn(world, enemyKind, spot, budget.HpMult, budget.DmgMult, elite);
+            if (enemyKind == EnemyKind.ShadowWolf && world.RegularAlive < SurvivorTuning.MaxAliveEnemies)
+            {
+                Vector3 mate = CombatMath.ClampArena(spot + new Vector3(Catalog.WolfPairOffset, 0f, 0f));
+                EnemySpawner.Spawn(world, enemyKind, mate, budget.HpMult, budget.DmgMult, false);
+                return 2;
+            }
+
+            return 1;
         }
     }
 }

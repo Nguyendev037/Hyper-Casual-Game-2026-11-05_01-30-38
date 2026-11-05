@@ -64,6 +64,22 @@ namespace RHMG.EditorTools
                 importer.SetTextureSettings(settings);
                 return;
             }
+            if (path.Contains("/Resources/RHMG/VFX/"))
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.spritePixelsPerUnit = 100f;
+                importer.alphaIsTransparency = true;
+                importer.mipmapEnabled = false;
+                importer.maxTextureSize = 512;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                TextureImporterSettings vfx = new TextureImporterSettings();
+                importer.ReadTextureSettings(vfx);
+                vfx.spriteAlignment = (int)SpriteAlignment.Center;
+                importer.SetTextureSettings(vfx);
+                return;
+            }
             if (path.Contains("/Resources/RHMG/World/"))
             {
                 importer.textureType = TextureImporterType.Default;

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace RHMG.Runtime.Visuals
 {
     /// <summary>Constructs normal dungeon arenas and the Sun/Moon showcase arena.</summary>
-    internal static class ArenaBuilder
+    public static class ArenaBuilder
     {
         public static GameObject Build(Transform parent, float width, float depth, bool showcase)
         {
@@ -148,6 +148,40 @@ namespace RHMG.Runtime.Visuals
 
             return root;
         }
+
+        /// <summary>
+        /// SPEC-P04: re-skins a built TowerArena for the floor's chapter. Chapter floor texture
+        /// (World/tex_floor_ch[k]) replaces the checkerboard tiles; missing texture keeps the old look. Props are rebuilt.
+        /// </summary>
+        public static void ApplyChapter(Transform arena, int floor)
+        {
+            if (arena == null) return;
+            Transform slab = arena.Find("FloorBase");
+            if (slab == null) return;
+            float width = slab.localScale.x, depth = slab.localScale.z;
+            int chapter = WorldDecor.ChapterOf(floor);
+            Texture2D texture = WorldSkin.Tex("tex_floor_ch" + chapter);
+            Transform baseSlab = slab;
+            bool themed = texture != null;
+            if (!themed)
+            {
+                SetTexture(baseSlab.gameObject, "tex_floor_sand", Palette.SandMortar, new Vector2(width / 2f, depth / 2f));
+            }
+            else
+            {
+                SetTexture(baseSlab.gameObject, "tex_floor_ch" + chapter, Color.white,
+                    new Vector2(Mathf.Max(1f, width / TileMeters), Mathf.Max(1f, depth / TileMeters)));
+            }
+            for (int i = 0; i < arena.childCount; i++)
+            {
+                Transform child = arena.GetChild(i);
+                if (child.name.StartsWith("Tile_")) child.gameObject.SetActive(!themed);
+            }
+            WorldDecor.Rebuild(arena, floor, width, depth);
+        }
+
+        /// <summary>One texture repeat per 4 m of arena.</summary>
+        public const float TileMeters = 4f;
 
         private static void SetTexture(GameObject target, string textureId, Color tint, Vector2 tiling)
         {

@@ -246,6 +246,7 @@ namespace RHMG.Core
             { "Tầng đạt", new[] { "Floor reached", "도달 층" } },
             { "Vàng nhận", new[] { "Gold earned", "획득 골드" } },
             { "Thời gian", new[] { "Time", "시간" } },
+            { "Tinh linh", new[] { "Spirits", "정령" } },
             { "Hiếm", new[] { "Rare", "희귀" } },
             { "Ngày", new[] { "Day", "낮" } },
             { "Đêm", new[] { "Night", "밤" } }

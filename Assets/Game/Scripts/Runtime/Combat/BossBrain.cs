@@ -19,7 +19,11 @@ namespace RHMG.Runtime.Combat
             Spiral,
             Slam,
             Pillars,
-            Ring
+            Ring,
+            Rain,
+            Mirrors,
+            TripleDash,
+            Breath
         }
 
         private sealed class Slot
@@ -46,6 +50,7 @@ namespace RHMG.Runtime.Combat
             public Vector3 Position;
             public float Left;
             public float Total;
+            public float Damage;
             public TelegraphView View;
         }
 
@@ -65,6 +70,7 @@ namespace RHMG.Runtime.Combat
         private readonly float damageMult;
         private readonly float baseScale;
         private readonly bool scripted;
+        private readonly bool warden;
         private readonly List<Slot> slots = new List<Slot>(6);
         private readonly List<Warning> warnings = new List<Warning>(4);
         private readonly List<Pillar> pillars = new List<Pillar>(3);
@@ -89,6 +95,9 @@ namespace RHMG.Runtime.Combat
         private bool dashHit;
         private float pillarSpawnTimer;
         private int pillarsToSpawn;
+        private int dashesLeft;
+        private Vector3 mirrorA, mirrorB, mirrorDirA, mirrorDirB;
+        private const float TripleDashLength = 10f;
 
         private int anchorsAlive;
         private float anchorWarnLeft = -1f;
@@ -121,7 +130,8 @@ namespace RHMG.Runtime.Combat
             floor = floorIndex;
             damageMult = floorDamageMult;
             baseScale = BalanceProbe.DamageScale(bossKind);
-            scripted = bossKind != EnemyKind.CageWarden;
+            warden = EnemyKinds.IsGuardian(bossKind);
+            scripted = !warden;
             BuildSlots();
         }
 
@@ -129,7 +139,7 @@ namespace RHMG.Runtime.Combat
 
         private void BuildSlots()
         {
-            if (kind == EnemyKind.CageWarden)
+            if (warden)
             {
                 float fanTele = Mathf.Max(Catalog.WardenFanTelegraph, Catalog.BossMinTelegraph);
                 float slamDamage = Catalog.GetEnemy(EnemyKind.CageWarden).AttackDamage;
@@ -143,6 +153,13 @@ namespace RHMG.Runtime.Combat
                 if (floor >= 70)
                 {
                     AddSlot(ActKind.Summon, "summon", 14f, 9f, 0.8f, 0f, 2, 1, 1);
+                }
+
+                BossAttackDef extra = Catalog.GuardianExtra(kind);
+                if (extra != null)
+                {
+                    AddSlot(ExtraAct(extra.Name), extra.Name, extra.Interval, 3f, Mathf.Max(extra.Telegraph, Catalog.BossMinTelegraph),
+                        extra.Damage, extra.Count, 1, 1);
                 }
 
                 return;
@@ -164,6 +181,18 @@ namespace RHMG.Runtime.Combat
                 AddSlot(act, d.Name, d.Interval, stagger, Mathf.Max(d.Telegraph, Catalog.BossMinTelegraph),
                     d.Damage, d.Count, first, 3);
                 stagger += 0.9f;
+            }
+        }
+
+        private static ActKind ExtraAct(string name)
+        {
+            switch (name)
+            {
+                case "rain": return ActKind.Rain;
+                case "mirrors": return ActKind.Mirrors;
+                case "triple_dash": return ActKind.TripleDash;
+                case "breath": return ActKind.Breath;
+                default: return ActKind.None;
             }
         }
 
@@ -223,7 +252,7 @@ namespace RHMG.Runtime.Combat
         {
             get
             {
-                if (kind == EnemyKind.CageWarden)
+                if (warden)
                 {
                     return boss.HpFraction < Catalog.WardenEnrageHpFraction ? Catalog.WardenEnrageRate : 1f;
                 }
@@ -411,7 +440,7 @@ namespace RHMG.Runtime.Combat
 
         private void Approach(float deltaTime, Vector3 toPlayer, float moveSpeed, float slowFactor)
         {
-            float speed = kind == EnemyKind.CageWarden ? Mathf.Min(moveSpeed, 1f) : moveSpeed;
+            float speed = warden ? Mathf.Min(moveSpeed, 1f) : moveSpeed;
             speed = Mathf.Min(speed, Catalog.BaseMoveSpeed * 0.9f) * slowFactor;
             Vector3 to = world.Player.transform.position - boss.transform.position;
             if (CombatMath.Flat(to).magnitude > CombatTuning.BossStopDistance)
@@ -442,7 +471,7 @@ namespace RHMG.Runtime.Combat
             switch (slot.Kind)
             {
                 case ActKind.Fan:
-                    if (kind == EnemyKind.CageWarden)
+                    if (warden)
                     {
                         AddWarn(WarnShape.Fan60, pos, aimDir, Vector3.one);
                     }
@@ -461,13 +490,13 @@ namespace RHMG.Runtime.Combat
                         break;
                     }
                 case ActKind.Summon:
-                    AddWarn(WarnShape.Disc, pos, Vector3.forward, Vector3.one * (kind == EnemyKind.CageWarden ? 0.85f : 1f));
+                    AddWarn(WarnShape.Disc, pos, Vector3.forward, Vector3.one * (warden ? 0.85f : 1f));
                     break;
                 case ActKind.Spiral:
                     AddWarn(WarnShape.Disc, pos, Vector3.forward, Vector3.one * 0.7f);
                     break;
                 case ActKind.Slam:
-                    if (kind == EnemyKind.CageWarden)
+                    if (warden)
                     {
                         AddWarn(WarnShape.Disc, aimPos, Vector3.forward, Vector3.one);
                     }
@@ -479,6 +508,41 @@ namespace RHMG.Runtime.Combat
                     break;
                 case ActKind.Ring:
                     AddWarn(WarnShape.Disc, pos, Vector3.forward, Vector3.one * (3.5f / Catalog.WardenRingRadius));
+                    break;
+                case ActKind.Rain:
+                    for (int i = 0; i < slot.Count; i++)
+                    {
+                        Vector3 spot = playerPos;
+                        if (i > 0)
+                        {
+                            spot = CombatMath.ClampArena(playerPos + new Vector3(Random.Range(-4.5f, 4.5f), 0f, Random.Range(-4.5f, 4.5f)));
+                        }
+
+                        SpawnPillar(spot, slot.Telegraph, slot.Damage);
+                    }
+
+                    telegraph = 0f;
+                    channelTotal = slot.Telegraph + 0.2f;
+                    channel = channelTotal;
+                    break;
+                case ActKind.Mirrors:
+                    {
+                        Vector3 side = new Vector3(aimDir.z, 0f, -aimDir.x);
+                        mirrorA = CombatMath.ClampArena(pos + side * 4f);
+                        mirrorB = CombatMath.ClampArena(pos - side * 4f);
+                        mirrorDirA = CombatMath.Direction(mirrorA, playerPos);
+                        mirrorDirB = CombatMath.Direction(mirrorB, playerPos);
+                        AddWarn(WarnShape.BossFan, mirrorA, mirrorDirA, Vector3.one * 1.6f);
+                        AddWarn(WarnShape.BossFan, mirrorB, mirrorDirB, Vector3.one * 1.6f);
+                        break;
+                    }
+                case ActKind.TripleDash:
+                    dashesLeft = slot.Count;
+                    AddWarn(WarnShape.Line, pos, aimDir, new Vector3(DashWidth / CombatTuning.SentinelTelegraphWidth, 1f,
+                        TripleDashLength / CombatTuning.SentinelChargeDistance));
+                    break;
+                case ActKind.Breath:
+                    AddWarn(WarnShape.BossFan, pos, aimDir, Vector3.one * 1.6f);
                     break;
                 case ActKind.Pillars:
                     // the pillar circles themselves are the warnings (spawned over the first 0.8 s)
@@ -516,7 +580,14 @@ namespace RHMG.Runtime.Combat
                 StepChannel(deltaTime);
                 if (channel <= 0f)
                 {
-                    EndAction();
+                    if (current.Kind == ActKind.TripleDash && dashesLeft > 0)
+                    {
+                        BeginNextDash();
+                    }
+                    else
+                    {
+                        EndAction();
+                    }
                 }
             }
             else
@@ -534,7 +605,7 @@ namespace RHMG.Runtime.Combat
             {
                 case ActKind.Fan:
                     {
-                        float arc = kind == EnemyKind.CageWarden ? CombatTuning.WardenFanAngle : FanArc;
+                        float arc = warden ? CombatTuning.WardenFanAngle : FanArc;
                         int count = current.Count;
                         for (int i = 0; i < count; i++)
                         {
@@ -546,6 +617,22 @@ namespace RHMG.Runtime.Combat
                         EndAction();
                         break;
                     }
+                case ActKind.TripleDash:
+                    channelTotal = TripleDashLength / DashSpeedQueen;
+                    channel = channelTotal;
+                    dashHit = false;
+                    dashesLeft--;
+                    break;
+                case ActKind.Mirrors:
+                    FireMirror(mirrorA, mirrorDirA);
+                    FireMirror(mirrorB, mirrorDirB);
+                    EndAction();
+                    break;
+                case ActKind.Breath:
+                    channelTotal = 1.2f;
+                    channel = channelTotal;
+                    emitted = 0f;
+                    break;
                 case ActKind.Dash:
                     channelTotal = (kind == EnemyKind.BlueHairGuy ? DashLengthBlue : DashLengthQueen) /
                         (kind == EnemyKind.BlueHairGuy ? DashSpeedBlue : DashSpeedQueen);
@@ -563,8 +650,8 @@ namespace RHMG.Runtime.Combat
                     break;
                 case ActKind.Slam:
                     {
-                        Vector3 center = kind == EnemyKind.CageWarden ? aimPos : pos;
-                        float radius = kind == EnemyKind.CageWarden ? Catalog.WardenRingRadius : 4f;
+                        Vector3 center = warden ? aimPos : pos;
+                        float radius = warden ? Catalog.WardenRingRadius : 4f;
                         if (CombatMath.Overlap(playerPos, 0f, center, radius))
                         {
                             world.Player.TakeDamage(Damage(current.Damage), center);
@@ -593,6 +680,7 @@ namespace RHMG.Runtime.Combat
         {
             switch (current.Kind)
             {
+                case ActKind.TripleDash:
                 case ActKind.Dash:
                     {
                         float speed = kind == EnemyKind.BlueHairGuy ? DashSpeedBlue : DashSpeedQueen;
@@ -620,6 +708,19 @@ namespace RHMG.Runtime.Combat
 
                         break;
                     }
+                case ActKind.Breath:
+                    {
+                        float elapsedBreath = channelTotal - Mathf.Max(0f, channel);
+                        int shouldBreath = Mathf.Min(current.Count, Mathf.FloorToInt(elapsedBreath / channelTotal * current.Count) + 1);
+                        while (emitted < shouldBreath)
+                        {
+                            float angle = Mathf.Lerp(-45f, 45f, emitted / Mathf.Max(1f, current.Count - 1f));
+                            Shoot(boss.transform.position, Quaternion.AngleAxis(angle, Vector3.up) * aimDir, current.Damage, 9f);
+                            emitted += 1f;
+                        }
+
+                        break;
+                    }
                 case ActKind.Pillars:
                     pillarSpawnTimer -= deltaTime;
                     if (pillarsToSpawn > 0 && pillarSpawnTimer <= 0f)
@@ -633,11 +734,42 @@ namespace RHMG.Runtime.Combat
             }
         }
 
+        private void BeginNextDash()
+        {
+            Vector3 pos = boss.transform.position;
+            aimDir = CombatMath.Direction(pos, world.Player.transform.position);
+            if (aimDir.sqrMagnitude < 0.0001f)
+            {
+                aimDir = Vector3.forward;
+            }
+
+            telegraph = current.Telegraph;
+            telegraphTotal = telegraph;
+            channel = 0f;
+            dashHit = false;
+            boss.PlayWindup(telegraph);
+            ClearWarnings();
+            AddWarn(WarnShape.Line, pos, aimDir, new Vector3(DashWidth / CombatTuning.SentinelTelegraphWidth, 1f,
+                TripleDashLength / CombatTuning.SentinelChargeDistance));
+        }
+
+        private void FireMirror(Vector3 origin, Vector3 dir)
+        {
+            int count = current.Count;
+            for (int i = 0; i < count; i++)
+            {
+                float angle = count == 1 ? 0f : Mathf.Lerp(-FanArc * 0.5f, FanArc * 0.5f, i / (float)(count - 1));
+                Shoot(origin, Quaternion.AngleAxis(angle, Vector3.up) * dir, current.Damage, CombatTuning.WardenProjectileSpeed);
+            }
+
+            world.PlayBurst(Palette.Silver, 1.2f, origin);
+        }
+
         private void EndAction()
         {
             ClearWarnings();
             current = null;
-            gap = kind == EnemyKind.CageWarden ? CombatTuning.WardenRecovery / RateMult : ActionGap / RateMult;
+            gap = warden ? CombatTuning.WardenRecovery / RateMult : ActionGap / RateMult;
             telegraph = 0f;
             channel = 0f;
         }
@@ -665,12 +797,12 @@ namespace RHMG.Runtime.Combat
         private void Shoot(Vector3 origin, Vector3 dir, float baseDamage, float speed)
         {
             world.Fire(ProjectileOwner.Enemy, origin + Vector3.up * 0.5f, dir, Damage(baseDamage), speed, null,
-                Palette.EnemyPurple);
+                Palette.EnemyPurple, VfxStyle.Boss);
         }
 
         private void SummonMinions(Vector3 around)
         {
-            EnemyKind minion = kind == EnemyKind.CageWarden ? EnemyKind.Sentinel : EnemyKind.SandBeetle;
+            EnemyKind minion = warden ? FloorPlan.RegularKind(FloorPlan.Chapter(floor), SpawnRole.Special) : EnemyKind.SandBeetle;
             SpawnBudget budget = FloorPlan.Budget(floor);
             int count = current.Count;
             for (int i = 0; i < count; i++)
@@ -682,13 +814,14 @@ namespace RHMG.Runtime.Combat
 
                 float angle = i / (float)count * Mathf.PI * 2f;
                 Vector3 spot = CombatMath.ClampArena(around + new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * 3f);
-                world.SpawnEnemy(minion, spot, budget.HpMult, budget.DmgMult, false);
+                EnemySpawner.Spawn(world, minion, spot, budget.HpMult, budget.DmgMult, false);
             }
         }
 
-        private void SpawnPillar(Vector3 position, float seconds)
+        private void SpawnPillar(Vector3 position, float seconds, float damage = -1f)
         {
             Pillar p = new Pillar();
+            p.Damage = damage;
             p.Position = position;
             p.Left = seconds;
             p.Total = seconds;
@@ -717,7 +850,7 @@ namespace RHMG.Runtime.Combat
 
                 if (CombatMath.Overlap(world.Player.transform.position, 0f, p.Position, PillarRadius))
                 {
-                    world.Player.TakeDamage(Damage(PillarDamage()), p.Position);
+                    world.Player.TakeDamage(Damage(p.Damage >= 0f ? p.Damage : PillarDamage()), p.Position);
                 }
 
                 world.PlayBurst(Palette.Sand, PillarRadius, p.Position);
