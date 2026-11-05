@@ -56,6 +56,12 @@ namespace RHMG.Runtime.Combat
                 return;
             }
 
+            // Debug clears hit with float.MaxValue; RoundToInt would overflow to -2147483648.
+            if (damage >= 1e6f)
+            {
+                return;
+            }
+
             FloatingDamageNumber number = instance.numberPool.Get();
             number.transform.position = position;
             number.SetText(Mathf.RoundToInt(damage).ToString());

@@ -32,7 +32,7 @@ namespace RHMG.EditorTools
         public static bool MaterialsMissing()
         {
             return !File.Exists(ResDir + "/Lit.mat") || !File.Exists(ResDir + "/Unlit.mat")
-                || !File.Exists(ResDir + "/UnlitTransparent.mat");
+                || !File.Exists(ResDir + "/UnlitTransparent.mat") || !File.Exists(ResDir + "/SpriteUnlit.mat");
         }
 
         public static bool SceneMissing() { return !File.Exists(ScenePath); }
@@ -73,6 +73,9 @@ namespace RHMG.EditorTools
                 m.SetOverrideTag("RenderType", "Transparent");
                 m.renderQueue = 3000;
             });
+            // Character billboards: 2D unlit sprite shader (works in the 3D URP renderer); Sprites/Default if URP 2D is absent.
+            const string spriteShader = "Universal Render Pipeline/2D/Sprite-Unlit-Default";
+            EnsureMat("SpriteUnlit", Shader.Find(spriteShader) != null ? spriteShader : "Sprites/Default", null);
         }
 
         static void EnsureScene()
@@ -127,13 +130,13 @@ namespace RHMG.EditorTools
         {
             PlayerSettings.companyName = "KITTS Games";
             PlayerSettings.productName = "Red Hair Magic Girl";
-            PlayerSettings.bundleVersion = "0.1.0";
+            PlayerSettings.bundleVersion = "0.3.0";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.kitts.redhairmagicgirl");
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
-            PlayerSettings.Android.bundleVersionCode = 1;
+            PlayerSettings.Android.bundleVersionCode = 3;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.Android.useCustomKeystore = false;
         }

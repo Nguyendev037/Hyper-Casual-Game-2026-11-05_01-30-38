@@ -11,8 +11,9 @@ namespace RHMG.EditorTools
     public static class BuildAndroid
     {
         const string OutDir = "Builds/Android";
-        const string ApkName = "RedHairMagicGirl_demo_v0.1.apk";
-        const string DevApkName = "RedHairMagicGirl_demo_v0.1_dev.apk";
+        // File name follows PlayerSettings.bundleVersion (set in ProjectSetup) — no hard-coded version.
+        static string ApkName(bool dev) =>
+            "RedHairMagicGirl_demo_v" + PlayerSettings.bundleVersion + (dev ? "_dev" : string.Empty) + ".apk";
 
         [MenuItem("RHMG/Build Android APK")]
         public static void Build() { Run(false); }
@@ -35,7 +36,7 @@ namespace RHMG.EditorTools
             }
             ProjectSetup.EnsureAll();
             Directory.CreateDirectory(OutDir);
-            string apk = OutDir + "/" + (dev ? DevApkName : ApkName);
+            string apk = OutDir + "/" + ApkName(dev);
             var opts = new BuildPlayerOptions
             {
                 scenes = new[] { ProjectSetup.ScenePath },

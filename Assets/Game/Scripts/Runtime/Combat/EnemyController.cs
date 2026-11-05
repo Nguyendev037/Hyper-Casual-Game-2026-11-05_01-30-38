@@ -35,6 +35,7 @@ namespace RHMG.Runtime.Combat
         private EnemyKind warningPoolKind;
         private Vector3 eyeShotDirection;
         private GameObject visual;
+        private Facing facing;
         private bool isDummy;
         private TrainingDummy dummyDisplay;
 
@@ -60,6 +61,7 @@ namespace RHMG.Runtime.Combat
         {
             Kind = kind;
             transform.position = position;
+            facing = default; // pooled enemies must not keep the previous life's yaw
             EnemyDefinition definition = Catalog.GetEnemy(kind);
             Radius = definition.Radius;
             health = new Health(definition.MaxHp);
@@ -126,6 +128,12 @@ namespace RHMG.Runtime.Combat
                 return;
             }
             Vector3 toPlayer = CombatMath.Direction(transform.position, world.Player.transform.position);
+            if (visual != null)
+            {
+                facing.Face(toPlayer);
+                facing.Step(deltaTime, Kind == EnemyKind.CageWarden ? 120f : 360f);
+                visual.transform.rotation = facing.Rotation;
+            }
             if (Kind == EnemyKind.CageWarden)
             {
                 StepBoss(deltaTime, toPlayer, definition.MoveSpeed);

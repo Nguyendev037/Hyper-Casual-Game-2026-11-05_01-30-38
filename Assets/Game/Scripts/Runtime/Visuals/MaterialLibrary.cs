@@ -9,6 +9,8 @@ namespace RHMG.Runtime.Visuals
         private static readonly int BaseColorPropId = Shader.PropertyToID("_BaseColor");
 
         private static readonly Dictionary<Color32, Material> s_LitCache = new Dictionary<Color32, Material>();
+        private static readonly Dictionary<TexturedMaterialKey, Material> s_TexturedLitCache =
+            new Dictionary<TexturedMaterialKey, Material>();
         private static readonly Dictionary<Color32, Material> s_UnlitCache = new Dictionary<Color32, Material>();
         private static readonly Dictionary<Color32, Material> s_UnlitTransCache = new Dictionary<Color32, Material>();
 
@@ -44,6 +46,31 @@ namespace RHMG.Runtime.Visuals
             }
             s_LitCache[key] = instance;
             return instance;
+        }
+
+        public static Material LitTextured(Color tint, Texture2D texture, Vector2 tiling)
+        {
+            if (texture == null)
+            {
+                return Lit(tint);
+            }
+
+            TexturedMaterialKey key = new TexturedMaterialKey(tint, texture, tiling);
+            if (s_TexturedLitCache.TryGetValue(key, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            Material material = Lit(tint);
+            if (material != null)
+            {
+                material = new Material(material);
+                material.hideFlags = HideFlags.DontSave;
+                material.mainTexture = texture;
+                material.mainTextureScale = tiling;
+            }
+            s_TexturedLitCache[key] = material;
+            return material;
         }
 
         public static Material Unlit(Color c)
@@ -156,6 +183,40 @@ namespace RHMG.Runtime.Visuals
             }
 #endif
             return null;
+        }
+
+        private readonly struct TexturedMaterialKey : System.IEquatable<TexturedMaterialKey>
+        {
+            private readonly Color32 color;
+            private readonly int textureId;
+            private readonly Vector2 tiling;
+
+            public TexturedMaterialKey(Color tint, Texture2D texture, Vector2 textureTiling)
+            {
+                color = tint;
+                textureId = texture.GetHashCode();
+                tiling = textureTiling;
+            }
+
+            public bool Equals(TexturedMaterialKey other)
+            {
+                return color.Equals(other.color) && textureId == other.textureId && tiling.Equals(other.tiling);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is TexturedMaterialKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = color.GetHashCode();
+                    hash = (hash * 397) ^ textureId;
+                    return (hash * 397) ^ tiling.GetHashCode();
+                }
+            }
         }
     }
 }

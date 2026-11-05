@@ -27,6 +27,11 @@ namespace RHMG.Runtime.Visuals
         private float m_BiteTimer;
         private Coroutine m_PopRoutine;
 
+        // 2D sprite mode: primitives stay built but hidden; null billboard = primitive fallback (S1).
+        // SpriteRoot carries the lion pop scale so the billboard (child of the yawed root, S4) pops too.
+        private Transform m_SpriteRoot;
+        private SpriteBillboard m_Billboard;
+
         private const float BaseVisualScale = 1.4f;
         private const float LionScaleFactor = 1.9f;
         private const float BaseShadowRadius = 0.55f;
@@ -43,18 +48,21 @@ namespace RHMG.Runtime.Visuals
                 var seat = transform.Find("Seat");
                 if (seat != null) Seat = seat;
             }
+            m_Facing.Face(Vector3.back); // face the camera until movement sets a direction
         }
 
         public void SetTier(DogTier tier)
         {
             m_CurrentTier = tier;
             UpdateTierVisuals();
+            RefreshSprite();
         }
 
         public void SetLionForm(DayPhase p)
         {
             m_CurrentPhase = p;
             UpdateLionFormVisuals();
+            RefreshSprite();
 
             if (m_CurrentTier == DogTier.SunMoonLion && gameObject.activeInHierarchy)
             {
@@ -66,12 +74,22 @@ namespace RHMG.Runtime.Visuals
         public void SetMoving(float speed01)
         {
             m_Speed01 = Mathf.Clamp01(speed01);
+            if (m_Billboard != null) m_Billboard.SetMotion(m_Speed01);
         }
 
         public void PlayBite()
         {
             m_BiteTimer = 0.20f;
+            if (m_Billboard != null) m_Billboard.Lunge(0.35f, 0.20f);
         }
+
+        /// <summary>World-space direction the dog turns toward (smoothly, whole rig incl. lunge).</summary>
+        public void SetFacing(Vector3 direction)
+        {
+            m_Facing.Face(direction);
+        }
+
+        private Facing m_Facing;
 
         private void Update()
         {
@@ -120,6 +138,39 @@ namespace RHMG.Runtime.Visuals
             }
 
             Visual.localPosition = new Vector3(0f, bobY, lungeZ);
+            m_Facing.Step(dt, 540f);
+            transform.rotation = m_Facing.Rotation;
+        }
+
+        /// <summary>Shows the 2D sprite for the current tier/phase, or falls back to the primitive dog when it is missing.</summary>
+        private void RefreshSprite()
+        {
+            Sprite sprite = CharacterSprites.Dog(m_CurrentTier, m_CurrentPhase);
+            if (sprite != null)
+            {
+                float height = CharacterSprites.DogHeight(m_CurrentTier);
+                if (m_Billboard == null)
+                {
+                    m_SpriteRoot = new GameObject("SpriteRoot").transform;
+                    m_SpriteRoot.SetParent(transform, false);
+                    m_Billboard = SpriteBillboard.Create(m_SpriteRoot, sprite, height);
+                    m_Billboard.SetMotion(m_Speed01);
+                }
+                else
+                {
+                    m_Billboard.SetSprite(sprite, height);
+                }
+                m_SpriteRoot.localScale = Vector3.one;
+                CharacterSprites.SetPrimitivesVisible(transform, BlobShadow, false);
+            }
+            else if (m_Billboard != null)
+            {
+                if (Application.isPlaying) Destroy(m_SpriteRoot.gameObject);
+                else DestroyImmediate(m_SpriteRoot.gameObject);
+                m_SpriteRoot = null;
+                m_Billboard = null;
+                CharacterSprites.SetPrimitivesVisible(transform, BlobShadow, true);
+            }
         }
 
         private void UpdateTierVisuals()
@@ -195,6 +246,11 @@ namespace RHMG.Runtime.Visuals
         private void ApplyVisualScale(float scale)
         {
             if (Visual != null) Visual.localScale = Vector3.one * scale;
+            if (m_SpriteRoot != null)
+            {
+                bool lion = m_CurrentTier == DogTier.SunMoonLion;
+                m_SpriteRoot.localScale = Vector3.one * (scale / (lion ? BaseVisualScale * LionScaleFactor : BaseVisualScale));
+            }
             if (Seat != null) Seat.localPosition = new Vector3(0f, 0.60f * scale, -0.05f * scale);
             if (BlobShadow != null)
             {

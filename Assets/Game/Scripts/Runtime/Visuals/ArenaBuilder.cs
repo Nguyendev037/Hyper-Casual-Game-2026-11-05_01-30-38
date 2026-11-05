@@ -21,8 +21,10 @@ namespace RHMG.Runtime.Visuals
             Color pillarColor = showcase ? Palette.Silver : Palette.AshGrey;
 
             // Base floor slab
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, -0.1f, 0f),
+            GameObject floorBase = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(0f, -0.1f, 0f),
                 new Vector3(width, 0.2f, depth), floorColor, "FloorBase", keepCollider: true);
+            SetTexture(floorBase, "tex_floor_sand", floorColor, new Vector2(width / 2f, depth / 2f));
 
             // Floor decorative pattern
             if (showcase)
@@ -58,6 +60,7 @@ namespace RHMG.Runtime.Visuals
                     for (int z = 0; z < tilesZ; z++)
                     {
                         Color tone = ((x + z) % 2 == 0) ? Palette.Sand : Palette.SandShade;
+                        bool runeTile = x == tilesX / 2 && z == tilesZ / 2;
                         Vector3 tilePos = new Vector3(-halfW + (x + 0.5f) * stepX, 0.01f,
                             -halfD + (z + 0.5f) * stepZ);
                         GameObject tile = Prim.Make(PrimitiveType.Cube, root.transform, tilePos,
@@ -65,6 +68,8 @@ namespace RHMG.Runtime.Visuals
                         var tileRenderer = tile.GetComponent<MeshRenderer>();
                         if (tileRenderer != null)
                         {
+                            string textureId = runeTile ? "tex_floor_rune" : "tex_floor_sand";
+                            SetTexture(tile, textureId, tone, new Vector2(stepX / 2f, stepZ / 2f));
                             tileRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                         }
                     }
@@ -75,22 +80,32 @@ namespace RHMG.Runtime.Visuals
             float wallH = 0.6f;
             float wallT = 0.4f;
             // South
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, wallH * 0.5f, -halfD),
+            GameObject southWall = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(0f, wallH * 0.5f, -halfD),
                 new Vector3(width, wallH, wallT), wallColor, "WallSouth", keepCollider: true);
+            SetTexture(southWall, "tex_wall_stone", wallColor, new Vector2(width / 2f, wallH / 2f));
             // West
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(-halfW, wallH * 0.5f, 0f),
+            GameObject westWall = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(-halfW, wallH * 0.5f, 0f),
                 new Vector3(wallT, wallH, depth), wallColor, "WallWest", keepCollider: true);
+            SetTexture(westWall, "tex_wall_stone", wallColor, new Vector2(depth / 2f, wallH / 2f));
             // East
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(halfW, wallH * 0.5f, 0f),
+            GameObject eastWall = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(halfW, wallH * 0.5f, 0f),
                 new Vector3(wallT, wallH, depth), wallColor, "WallEast", keepCollider: true);
+            SetTexture(eastWall, "tex_wall_stone", wallColor, new Vector2(depth / 2f, wallH / 2f));
 
             // North wall sections with gate opening
             float gateW = 3.2f;
             float sideWallW = (width - gateW) * 0.5f;
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(-halfW + sideWallW * 0.5f, wallH * 0.5f, halfD),
+            GameObject northWallL = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(-halfW + sideWallW * 0.5f, wallH * 0.5f, halfD),
                 new Vector3(sideWallW, wallH, wallT), wallColor, "WallNorthL", keepCollider: true);
-            Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(halfW - sideWallW * 0.5f, wallH * 0.5f, halfD),
+            SetTexture(northWallL, "tex_wall_stone", wallColor, new Vector2(sideWallW / 2f, wallH / 2f));
+            GameObject northWallR = Prim.Make(PrimitiveType.Cube, root.transform,
+                new Vector3(halfW - sideWallW * 0.5f, wallH * 0.5f, halfD),
                 new Vector3(sideWallW, wallH, wallT), wallColor, "WallNorthR", keepCollider: true);
+            SetTexture(northWallR, "tex_wall_stone", wallColor, new Vector2(sideWallW / 2f, wallH / 2f));
 
             // 4 Corner pillars
             Vector2[] corners = { new Vector2(-halfW, -halfD), new Vector2(halfW, -halfD),
@@ -98,18 +113,28 @@ namespace RHMG.Runtime.Visuals
             for (int i = 0; i < 4; i++)
             {
                 Vector3 pPos = new Vector3(corners[i].x, 1.5f, corners[i].y);
-                Prim.Make(PrimitiveType.Cylinder, root.transform, pPos, new Vector3(0.7f, 1.5f, 0.7f), pillarColor, $"Pillar_{i}", keepCollider: true);
-                Prim.Make(PrimitiveType.Cube, root.transform, pPos + Vector3.up * 1.5f, new Vector3(0.9f, 0.2f, 0.9f), pillarColor, $"PillarCap_{i}");
+                GameObject pillar = Prim.Make(PrimitiveType.Cylinder, root.transform, pPos,
+                    new Vector3(0.7f, 1.5f, 0.7f), pillarColor, $"Pillar_{i}", keepCollider: true);
+                SetTexture(pillar, "tex_wall_stone", pillarColor, Vector2.one);
+                GameObject pillarCap = Prim.Make(PrimitiveType.Cube, root.transform,
+                    pPos + Vector3.up * 1.5f, new Vector3(0.9f, 0.2f, 0.9f), pillarColor, $"PillarCap_{i}");
+                SetTexture(pillarCap, "tex_wall_stone", pillarColor, Vector2.one);
             }
 
             // Top Gate portal (cửa lên tầng)
             Vector3 gateCenter = new Vector3(0f, 0f, halfD);
-            Prim.Make(PrimitiveType.Cylinder, root.transform, gateCenter + new Vector3(-gateW * 0.5f, 1.8f, 0f),
+            GameObject gatePillarL = Prim.Make(PrimitiveType.Cylinder, root.transform,
+                gateCenter + new Vector3(-gateW * 0.5f, 1.8f, 0f),
                 new Vector3(0.55f, 1.8f, 0.55f), pillarColor, "GatePillarL", keepCollider: true);
-            Prim.Make(PrimitiveType.Cylinder, root.transform, gateCenter + new Vector3(gateW * 0.5f, 1.8f, 0f),
+            SetTexture(gatePillarL, "tex_wall_stone", pillarColor, Vector2.one);
+            GameObject gatePillarR = Prim.Make(PrimitiveType.Cylinder, root.transform,
+                gateCenter + new Vector3(gateW * 0.5f, 1.8f, 0f),
                 new Vector3(0.55f, 1.8f, 0.55f), pillarColor, "GatePillarR", keepCollider: true);
-            Prim.Make(PrimitiveType.Cube, root.transform, gateCenter + new Vector3(0f, 3.6f, 0f),
+            SetTexture(gatePillarR, "tex_wall_stone", pillarColor, Vector2.one);
+            GameObject gateLintel = Prim.Make(PrimitiveType.Cube, root.transform,
+                gateCenter + new Vector3(0f, 3.6f, 0f),
                 new Vector3(gateW + 0.8f, 0.5f, 0.7f), pillarColor, "GateLintel");
+            SetTexture(gateLintel, "tex_wall_stone", pillarColor, new Vector2(gateW / 2f, 1f));
 
             // Gate energy veil
             GameObject portal = Prim.Make(PrimitiveType.Cube, root.transform, gateCenter + new Vector3(0f, 1.8f, 0f),
@@ -122,6 +147,21 @@ namespace RHMG.Runtime.Visuals
             }
 
             return root;
+        }
+
+        private static void SetTexture(GameObject target, string textureId, Color tint, Vector2 tiling)
+        {
+            Texture2D texture = WorldSkin.Tex(textureId);
+            if (texture == null)
+            {
+                return;
+            }
+
+            MeshRenderer renderer = target == null ? null : target.GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                renderer.sharedMaterial = MaterialLibrary.LitTextured(tint, texture, tiling);
+            }
         }
 
         private static Color Lighten(Color c, float factor)

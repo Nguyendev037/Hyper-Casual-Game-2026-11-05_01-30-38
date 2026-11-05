@@ -157,7 +157,7 @@ namespace RHMG.Runtime.Visuals
             GameObject root = new GameObject(string.IsNullOrEmpty(spiritId) ? "Spirit" : spiritId);
             if (parent != null) root.transform.SetParent(parent, false);
             root.transform.localScale = Vector3.one * 1.4f;
-            BlobShadow.Create(root.transform, 0.34f);
+            Transform shadow = BlobShadow.Create(root.transform, 0.34f);
 
             Color auraColor = Palette.Sand;
             if (spiritId == "spirit.dew") auraColor = Palette.WaterBlue;
@@ -180,6 +180,14 @@ namespace RHMG.Runtime.Visuals
                 GameObject puff = Prim.Make(PrimitiveType.Sphere, root.transform, new Vector3(0.10f, 0.82f, 0f), new Vector3(0.18f, 0.18f, 0.18f), Palette.Silver, "Puff");
                 var mrPuff = puff.GetComponent<MeshRenderer>();
                 if (mrPuff != null) mrPuff.sharedMaterial = MaterialLibrary.Unlit(Palette.Silver);
+            }
+
+            // 2D sprite replaces the jar body and the opaque aura spheres; the blob shadow stays (S1: missing sprite = jar).
+            Sprite sprite = CharacterSprites.Spirit(spiritId);
+            if (sprite != null)
+            {
+                CharacterSprites.SetPrimitivesVisible(root.transform, shadow, false);
+                SpriteBillboard.Create(root.transform, sprite, CharacterSprites.SpiritHeight).SetMotion(0f);
             }
 
             return root;

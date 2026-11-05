@@ -18,7 +18,7 @@ namespace RHMG.Runtime.Combat
         private float retargetTimer;
         private float attackTimer;
         private float invulnerabilityTimer;
-        private Vector3 facing = Vector3.forward;
+        private Vector3 facing = Vector3.back; // toward the camera at spawn
         private GameObject spellRing;
 
         public void Init(CombatWorld combatWorld, PlayerStats stats, string[] outfitIds)
@@ -107,10 +107,8 @@ namespace RHMG.Runtime.Combat
                 facing = CombatMath.Direction(transform.position, target.transform.position);
             }
 
-            if (facing.sqrMagnitude > 0.001f)
-            {
-                Rig.Visual.rotation = Quaternion.LookRotation(facing);
-            }
+            // GirlRig turns smoothly; it owns the Visual rotation (it used to overwrite this every frame).
+            Rig.SetFacing(facing);
         }
 
         private void ApplyOutfits(string[] outfitIds)

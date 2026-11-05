@@ -50,6 +50,11 @@ namespace RHMG.Runtime
                 directory);
             SaveData data;
             LoadOutcome outcome = saveService.Load(out data);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Capture builds: force the UI language (-rhmgLang en|vi|ko) for per-language screenshots.
+            string forcedLanguage = GetArgument(commandLineArgs, "-rhmgLang");
+            if (RHMG.Core.Loc.IsKnownCode(forcedLanguage)) data.language = forcedLanguage;
+#endif
             var flow = gameObject.AddComponent<GameFlow>();
             string eventPath = string.IsNullOrEmpty(SaveDirectoryOverride)
                 ? null

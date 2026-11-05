@@ -16,6 +16,7 @@ namespace RHMG.Runtime.Combat
         private DayPhase phase;
         private float biteTimer;
         private float signatureTimer = CombatTuning.LionSignatureInterval;
+        private float biteFacingHold;
 
         public void Init(CombatWorld combatWorld, PlayerController owner, DayNightClock dayNightClock)
         {
@@ -70,6 +71,8 @@ namespace RHMG.Runtime.Combat
                 if (enemy != null)
                 {
                     enemy.TakeDamage(Owner.Stats.DogDamage, transform.position);
+                    Rig.SetFacing(enemy.transform.position - transform.position);
+                    biteFacingHold = 0.25f; // keep facing the bitten enemy for the lunge
                     Rig.PlayBite();
                     CombatFeedback.Play("bite");
                     biteTimer = Owner.Stats.DogInterval;
@@ -113,23 +116,33 @@ namespace RHMG.Runtime.Combat
 
         private void FollowOwner(float deltaTime)
         {
-            Vector3 behind = Owner.transform.position - Owner.Rig.Visual.forward * CombatTuning.DogFollowOffset;
+            Vector3 ownerForward = Owner.Rig.FacingForward;
+            Vector3 behind = Owner.transform.position - ownerForward * CombatTuning.DogFollowOffset;
             behind = CombatMath.ClampArena(behind);
+            Vector3 before = transform.position;
             transform.position = Vector3.MoveTowards(transform.position, behind,
                 CombatTuning.DogFollowSpeed * deltaTime);
             float distance = (transform.position - Owner.transform.position).sqrMagnitude;
             if (distance > CombatTuning.DogReturnDistance * CombatTuning.DogReturnDistance)
             {
-                transform.position = CombatMath.ClampArena(Owner.transform.position - Owner.Rig.Visual.forward);
+                transform.position = CombatMath.ClampArena(Owner.transform.position - ownerForward);
                 world.PlayBurst(Palette.Sand, CombatTuning.DogReturnBurstRadius, transform.position);
             }
 
+            // Face where it runs; when it has caught up, look the same way as the girl.
+            Vector3 moved = transform.position - before;
+            biteFacingHold -= deltaTime;
+            if (biteFacingHold <= 0f)
+            {
+                Rig.SetFacing(Facing.HasDirection(moved) && moved.sqrMagnitude > 0.0004f ? moved : ownerForward);
+            }
             Rig.SetMoving((behind - transform.position).magnitude);
         }
 
         private void StepLion(float deltaTime)
         {
             transform.position = Owner.transform.position;
+            Rig.SetFacing(Owner.Rig.FacingForward);
             signatureTimer -= deltaTime;
             if (signatureTimer > 0f)
             {

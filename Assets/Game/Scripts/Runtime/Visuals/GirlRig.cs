@@ -15,12 +15,22 @@ namespace RHMG.Runtime.Visuals
         public Transform Visual;
         public Transform BlobShadow;
 
+        private const float TurnSpeed = 720f;
         private float m_Speed01;
+        private float m_Bank;
+        private Facing m_Facing;
         private float m_CastTimer;
         private float m_FlashTimer;
         private Color m_FlashColor;
         private MaterialPropertyBlock m_Mpb;
         private readonly List<Renderer> m_CachedRenderers = new List<Renderer>();
+
+        // 2D sprite mode: the primitive rig stays built (slots, StaffTip) but hidden; null billboard = primitive fallback (S1).
+        private static readonly Vector2 StaffTipAnchor = new Vector2(0.80f, 0.78f);
+        private const float MountedHeightFactor = 0.8f;
+        private SpriteBillboard m_Billboard;
+        private string m_HeadId, m_BodyId, m_StaffId;
+        private bool m_Mounted;
 
         private readonly Dictionary<OutfitSlot, Coroutine> m_PopRoutines = new Dictionary<OutfitSlot, Coroutine>();
 
@@ -28,6 +38,7 @@ namespace RHMG.Runtime.Visuals
         {
             m_Mpb = new MaterialPropertyBlock();
             CacheRenderers();
+            m_Facing.Face(Vector3.back); // face the camera until something sets a direction (showcase, gallery)
         }
 
         public void ApplyOutfit(OutfitSlot slot, string appearanceId)
@@ -64,6 +75,15 @@ namespace RHMG.Runtime.Visuals
             }
 
             CacheRenderers();
+            switch (slot)
+            {
+                case OutfitSlot.Head: m_HeadId = appearanceId; break;
+                case OutfitSlot.Body: m_BodyId = appearanceId; break;
+                case OutfitSlot.Staff: m_StaffId = appearanceId; break;
+            }
+            RefreshSprite();
+            // The slot pop below only scales hidden primitives when a billboard is shown: pop the sprite too.
+            if (m_Billboard != null) m_Billboard.Pop();
 
             // Pop scale 1 -> 1.15 -> 1 in 0.2 s
             if (m_PopRoutines.TryGetValue(slot, out var existing) && existing != null)
@@ -83,11 +103,22 @@ namespace RHMG.Runtime.Visuals
         public void SetMoving(float speed01)
         {
             m_Speed01 = Mathf.Clamp01(speed01);
+            if (m_Billboard != null) m_Billboard.SetMotion(m_Speed01);
         }
+
+        /// <summary>World-space direction the girl should turn to (movement, or target when standing).</summary>
+        public void SetFacing(Vector3 direction)
+        {
+            m_Facing.Face(direction);
+        }
+
+        /// <summary>Flat forward the girl is currently facing (smoothed).</summary>
+        public Vector3 FacingForward => m_Facing.Forward;
 
         public void PlayCast()
         {
             m_CastTimer = 0.25f;
+            if (m_Billboard != null) m_Billboard.PunchCast();
         }
 
         public void Flash(Color c, float t)
@@ -95,10 +126,12 @@ namespace RHMG.Runtime.Visuals
             m_FlashColor = c;
             m_FlashTimer = Mathf.Max(0.01f, t);
             ApplyFlashTint(true);
+            if (m_Billboard != null) m_Billboard.Flash(c, m_FlashTimer);
         }
 
         public void SetMounted(Transform seat)
         {
+            m_Mounted = seat != null;
             if (seat != null)
             {
                 transform.SetParent(seat, false);
@@ -117,6 +150,48 @@ namespace RHMG.Runtime.Visuals
             {
                 BlobShadow.gameObject.SetActive(seat == null);
             }
+
+            RefreshSprite();
+        }
+
+        private void LateUpdate()
+        {
+            // Projectiles spawn at StaffTip; keep it on the staff of the drawn image.
+            if (m_Billboard != null && StaffTip != null)
+            {
+                StaffTip.position = m_Billboard.AnchorWorld(StaffTipAnchor);
+            }
+        }
+
+        /// <summary>Shows the 2D sprite for the current outfit, or falls back to the primitive rig when it is missing.</summary>
+        private void RefreshSprite()
+        {
+            if (Visual == null) return;
+            Sprite sprite = CharacterSprites.Girl(m_HeadId, m_BodyId, m_StaffId);
+            if (sprite != null)
+            {
+                float height = CharacterSprites.GirlHeight * (m_Mounted ? MountedHeightFactor : 1f);
+                if (m_Billboard == null)
+                {
+                    m_Billboard = SpriteBillboard.Create(Visual, sprite, height);
+                    m_Billboard.SetMotion(m_Speed01);
+                }
+                else
+                {
+                    m_Billboard.SetSprite(sprite, height);
+                }
+                m_Billboard.SetSortingOrder(m_Mounted ? 1 : 0); // rider is drawn in front of the lion
+                CharacterSprites.SetPrimitivesVisible(Visual, null, false);
+                if (StaffTip != null) StaffTip.position = m_Billboard.AnchorWorld(StaffTipAnchor);
+            }
+            else if (m_Billboard != null)
+            {
+                if (Application.isPlaying) Destroy(m_Billboard.gameObject);
+                else DestroyImmediate(m_Billboard.gameObject);
+                m_Billboard = null;
+                CharacterSprites.SetPrimitivesVisible(Visual, null, true);
+            }
+            CacheRenderers();
         }
 
         private void Update()
@@ -146,8 +221,15 @@ namespace RHMG.Runtime.Visuals
                 castPitch = Mathf.Sin(t01 * Mathf.PI) * 15f;
             }
 
+            // Turn smoothly toward the facing; lean forward while running and bank into turns.
+            float remainingTurn = m_Facing.Step(dt, TurnSpeed);
+            float targetBank = -Mathf.Clamp(remainingTurn, -60f, 60f) * 0.2f * Mathf.Max(0.3f, m_Speed01);
+            m_Bank = Mathf.Lerp(m_Bank, targetBank, Mathf.Clamp01(dt * 12f));
+            float lean = 9f * m_Speed01;
+
             Visual.localPosition = new Vector3(0f, bobY, 0f);
-            Visual.localRotation = Quaternion.Euler(castPitch, 0f, swayZ);
+            // World rotation so it also holds when the rig is parented to the dog's seat.
+            Visual.rotation = m_Facing.Rotation * Quaternion.Euler(castPitch + lean, 0f, swayZ + m_Bank);
 
             if (StaffSlot != null)
             {
@@ -191,6 +273,7 @@ namespace RHMG.Runtime.Visuals
             if (Visual != null)
             {
                 Visual.GetComponentsInChildren(true, m_CachedRenderers);
+                m_CachedRenderers.RemoveAll(r => r is SpriteRenderer); // sprite flash goes through the billboard
             }
         }
 

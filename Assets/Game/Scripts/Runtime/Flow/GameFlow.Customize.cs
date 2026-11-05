@@ -17,21 +17,21 @@ namespace RHMG.Runtime
             SetPaused(true);
             Clear();
             IReadOnlyList<string> available = fusion.AvailableSpirits();
-            Label("Bàn dung hợp", 0.82f);
+            Label("Bàn dung hợp", 0.82f, 80);
             AddListPanel();
-            Label("Nguyên liệu A: " + SpiritName(fusionA) + " · Dùng thử", 0.68f, 40);
-            Label("Nguyên liệu B: " + SpiritName(fusionB), 0.58f, 40);
-            Button("Đổi A", 0.46f, () => CycleSpirit(available, true));
-            Button("Đổi B", 0.36f, () => CycleSpirit(available, false));
+            Label(Loc.F("Nguyên liệu A: {0} · Dùng thử", SpiritName(fusionA)), 0.72f, 40);
+            Label(Loc.F("Nguyên liệu B: {0}", SpiritName(fusionB)), 0.63f, 40);
+            Button("Đổi A", 0.53f, () => CycleSpirit(available, true));
+            Button("Đổi B", 0.43f, () => CycleSpirit(available, false));
             FusionCheck check = fusion.Preview(fusionA, fusionB, out FusionRecipe recipe);
             string preview = check == FusionCheck.Ok
-                ? Catalog.GetSpirit(recipe.OutputId).DisplayName + " — Nổ vùng nhỏ rồi làm chậm"
+                ? Loc.T(Catalog.GetSpirit(recipe.OutputId).DisplayName) + " — " + Loc.T("Nổ vùng nhỏ rồi làm chậm")
                 : FusionMessage(check);
-            Label(preview, 0.27f, 40);
+            Label(preview, 0.31f, 40);
             Log("fusion_preview", check == FusionCheck.Ok ? recipe.Id : check.ToString());
-            Button("Dung hợp", 0.16f, () => ConfirmFusion(check, recipe));
-            Button("Tách Hơi Nước", 0.08f, Unfuse);
-            Button("Quay lại", 0.005f, () =>
+            Button("Dung hợp", 0.22f, () => ConfirmFusion(check, recipe));
+            Button("Tách Hơi Nước", 0.12f, Unfuse);
+            Button("Quay lại", 0.02f, () =>
             {
                 SetPaused(false);
                 DrawRest();
@@ -120,8 +120,8 @@ namespace RHMG.Runtime
             SetPaused(true);
             Clear();
             AddListPanel();
-            Label("Tủ đồ · " + (mode == Mode.Showcase ? "Thử miễn phí" : save.gold + " vàng"),
-                0.86f, 40);
+            Label(Loc.F("Tủ đồ · {0}", mode == Mode.Showcase ? Loc.T("Thử miễn phí") : Loc.F("{0} vàng", save.gold)),
+                0.86f, 80);
             IReadOnlyList<OutfitDefinition> outfits = Catalog.Outfits;
             for (int index = 0; index < outfits.Count; index++)
             {

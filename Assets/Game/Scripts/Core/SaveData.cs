@@ -46,6 +46,8 @@ namespace RHMG.Core
         public bool musicOn = true;
         public bool sfxOn = true;
         public bool vibrationOn;
+        /// <summary>UI language code: "en" (default) | "vi" | "ko". SPEC-P04.</summary>
+        public string language = "en";
 
         public static SaveData CreateDefault()
         {
@@ -57,6 +59,11 @@ namespace RHMG.Core
         /// <summary>Repairs the data in place. Never throws.</summary>
         public void Normalize()
         {
+            if (!Loc.IsKnownCode(language))
+            {
+                language = "en";
+            }
+
             if (gold < 0)
             {
                 gold = 0;
@@ -96,6 +103,7 @@ namespace RHMG.Core
             copy.musicOn = musicOn;
             copy.sfxOn = sfxOn;
             copy.vibrationOn = vibrationOn;
+            copy.language = language;
             copy.unlockedSpiritIds = unlockedSpiritIds == null ? null : new List<string>(unlockedSpiritIds);
             copy.ownedOutfitIds = ownedOutfitIds == null ? null : new List<string>(ownedOutfitIds);
             copy.claimedFirstClearFloors = claimedFirstClearFloors == null ? null : new List<int>(claimedFirstClearFloors);

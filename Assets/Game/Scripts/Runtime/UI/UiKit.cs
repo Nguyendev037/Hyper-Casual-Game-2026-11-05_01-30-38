@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 namespace RHMG.Runtime.UI
 {
-    public static class UiKit
+    public static partial class UiKit
     {
         static Sprite circleSprite;
         static Sprite roundedSprite;
-        static Font Font => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        static Font Font => UiSkin.Body;
 
         public static RectTransform Panel(
             Transform parent,
@@ -24,8 +24,11 @@ namespace RHMG.Runtime.UI
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             Image image = go.GetComponent<Image>();
-            image.color = color;
-            image.sprite = RoundedSprite();
+            // Skin only visible, non-fullscreen panels: roots, tints and touch areas stay as-is.
+            bool fullScreen = anchorMin == Vector2.zero && anchorMax == Vector2.one;
+            Sprite skin = color.a < 0.05f || fullScreen ? null : UiSkin.Ui("panel");
+            image.color = skin == null ? color : Color.white;
+            image.sprite = skin ?? RoundedSprite();
             image.type = Image.Type.Sliced;
             image.pixelsPerUnitMultiplier = 1f;
             return rect;
@@ -38,10 +41,13 @@ namespace RHMG.Runtime.UI
             go.GetComponent<RectTransform>().sizeDelta = size;
             var image = go.GetComponent<Image>();
             image.color = color;
-            image.sprite = RoundedSprite();
+            image.sprite = UiSkin.Ui(color == RHMG.Runtime.Visuals.Palette.HairRed
+                ? "button_primary" : "button_secondary") ?? RoundedSprite();
             image.type = Image.Type.Sliced;
+            image.color = image.sprite == RoundedSprite() ? color : Color.white;
             var button = go.GetComponent<Button>();
             button.targetGraphic = image;
+            AddPressFeedback(button);
             var text = Text(go.transform, label, 48, Color.white, TextAnchor.MiddleCenter);
             Stretch(text.rectTransform);
             return button;
@@ -58,12 +64,15 @@ namespace RHMG.Runtime.UI
             go.transform.SetParent(parent, false);
             var text = go.GetComponent<Text>();
             text.font = Font;
-            text.text = value;
+            // Vietnamese source sentence → current language (SPEC-P04). Already-formatted text passes through.
+            text.text = RHMG.Core.Loc.T(value);
             text.fontSize = size;
             text.color = color;
             text.alignment = alignment;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Truncate;
+            // Noto Sans KR has a taller line than Be Vietnam Pro: Truncate would hide whole lines in Korean.
+            text.verticalOverflow = RHMG.Core.Loc.Current == RHMG.Core.Language.Ko
+                ? VerticalWrapMode.Overflow : VerticalWrapMode.Truncate;
             var outline = go.GetComponent<Outline>();
             outline.effectColor = new Color(0.08f, 0.06f, 0.1f, 0.95f);
             outline.effectDistance = new Vector2(2, -2);
@@ -85,10 +94,12 @@ namespace RHMG.Runtime.UI
             var go = new GameObject("CircleButton", typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(parent, false);
             Image image = go.GetComponent<Image>();
-            image.sprite = CircleSprite();
-            image.color = color;
+            image.sprite = UiSkin.Ui("circle_button") ?? CircleSprite();
+            image.color = image.sprite == CircleSprite() ? color : Color.white;
+            image.type = Image.Type.Simple;
             Button button = go.GetComponent<Button>();
             button.targetGraphic = image;
+            AddPressFeedback(button);
             Text text = Text(go.transform, label, 48, Color.white, TextAnchor.MiddleCenter);
             Stretch(text.rectTransform);
             return button;
@@ -125,8 +136,28 @@ namespace RHMG.Runtime.UI
             fill.fillMethod = Image.FillMethod.Horizontal;
             background.GetComponent<Image>().raycastTarget = false;
             fill.raycastTarget = false;
+            Sprite frame = UiSkin.Ui("bar_frame");
+            Sprite barFill = UiSkin.Ui("bar_fill");
+            if (frame != null)
+            {
+                // bar_frame (256x64) has a heart baked in on the left and a narrow channel:
+                // draw it unsliced and fit the fill into the channel. Callers size the bar 4:1.
+                Image frameImage = background.GetComponent<Image>();
+                frameImage.sprite = frame;
+                frameImage.type = Image.Type.Simple;
+                frameImage.color = Color.white;
+                foreground.anchorMin = BarChannelMin;
+                foreground.anchorMax = BarChannelMax;
+                foreground.offsetMin = Vector2.zero;
+                foreground.offsetMax = Vector2.zero;
+            }
+            if (barFill != null) fill.sprite = barFill;
             return background;
         }
+
+        /// <summary>Channel of the skinned bar frame as anchors (measured on bar_frame.png).</summary>
+        public static readonly Vector2 BarChannelMin = new Vector2(0.33f, 0.31f);
+        public static readonly Vector2 BarChannelMax = new Vector2(0.83f, 0.59f);
 
         static Sprite CircleSprite()
         {

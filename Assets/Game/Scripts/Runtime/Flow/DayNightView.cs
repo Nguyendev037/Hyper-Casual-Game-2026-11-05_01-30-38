@@ -21,7 +21,7 @@ namespace RHMG.Runtime
 
         static readonly Color DayBackground = new Color(0.88f, 0.75f, 0.54f);
         static readonly Color NightBackground = new Color(0.18f, 0.24f, 0.37f);
-        static readonly Color DayLight = new Color(1f, 0.92f, 0.78f);
+        static readonly Color DayLight = new Color(1f, 0.89f, 0.69f);
         static readonly Color NightLight = new Color(0.56f, 0.65f, 0.85f);
         static readonly Color DayAmbient = new Color(0.65f, 0.58f, 0.45f);
         static readonly Color NightAmbient = new Color(0.35f, 0.4f, 0.55f);
@@ -32,7 +32,7 @@ namespace RHMG.Runtime
             Clock = clock;
             TargetCamera = targetCamera;
             MainLight = mainLight;
-            RenderSettings.ambientMode = AmbientMode.Flat;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
         }
 
         void LateUpdate()
@@ -53,9 +53,12 @@ namespace RHMG.Runtime
             if (MainLight != null)
             {
                 MainLight.color = Color.Lerp(DayLight, NightLight, blend);
-                MainLight.intensity = Mathf.Lerp(1.15f, 0.75f, blend);
+                MainLight.intensity = Mathf.Lerp(1.1f, 0.75f, blend);
             }
-            RenderSettings.ambientLight = Color.Lerp(DayAmbient, NightAmbient, blend);
+            Color ambient = Color.Lerp(DayAmbient, NightAmbient, blend);
+            RenderSettings.ambientSkyColor = ambient;
+            RenderSettings.ambientEquatorColor = Color.Lerp(ambient, NightBackground, 0.25f);
+            RenderSettings.ambientGroundColor = Color.Lerp(ambient, Palette.SandShade, 0.35f);
         }
     }
 }

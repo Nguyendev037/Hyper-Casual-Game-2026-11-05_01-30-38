@@ -78,6 +78,15 @@ namespace RHMG.Runtime.Visuals
                     break;
             }
 
+            // 2D sprite replaces the primitive body (S1: missing sprite keeps the primitives). Hidden before the shadow exists.
+            Sprite sprite = CharacterSprites.Enemy(kind);
+            if (sprite != null)
+            {
+                CharacterSprites.SetPrimitivesVisible(root.transform, null, false);
+                SpriteBillboard billboard = SpriteBillboard.Create(root.transform, sprite, CharacterSprites.EnemyHeight(kind));
+                billboard.SetMotion(kind == EnemyKind.SandBeetle ? 1f : kind == EnemyKind.Sentinel ? 0.5f : 0f);
+            }
+
             float shadowRadius = 0.50f;
             switch (kind)
             {

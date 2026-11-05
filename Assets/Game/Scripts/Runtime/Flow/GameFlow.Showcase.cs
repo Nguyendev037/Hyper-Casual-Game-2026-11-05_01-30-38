@@ -66,24 +66,28 @@ namespace RHMG.Runtime
         void DrawShowcaseScreen()
         {
             Clear();
-            Label("PHÒNG TRÌNH DIỄN TIẾN HÓA — dữ liệu minh họa, không ảnh hưởng tiến trình",
-                0.88f, 40);
-            ShowcaseButton("Ngày/đêm", 0.035f, () => clock.ForceToggle());
-            ShowcaseButton("Trang phục", 0.35f, DrawWardrobe);
-            ShowcaseButton("Quay lại", 0.665f, ReturnFromShowcase);
+            Label("PHÒNG TRÌNH DIỄN", 0.88f, 80);
+            Label("Dữ liệu minh họa, không ảnh hưởng tiến trình", 0.75f, 40);
+            ShowcaseButton("Ngày/đêm", 0, () => clock.ForceToggle());
+            ShowcaseButton("Trang phục", 1, DrawWardrobe);
+            ShowcaseButton("Quay lại", 2, ReturnFromShowcase);
         }
 
-        void ShowcaseButton(string label, float x, System.Action action)
+        void ShowcaseButton(string label, int column, System.Action action)
         {
-            var button = UiKit.Button(root, label, new Vector2(320, 110),
+            var button = UiKit.Button(root, label, new Vector2(300, 150),
                 new Color(0.22f, 0.18f, 0.22f, 0.96f));
             RectTransform rect = (RectTransform)button.transform;
-            rect.anchorMin = new Vector2(x, 0.10f);
-            rect.anchorMax = new Vector2(x + 0.30f, 0.22f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            float left = 0.04f + column * 0.32f;
+            rect.anchorMin = new Vector2(left, 0.10f);
+            rect.anchorMax = new Vector2(left + 0.28f, 0.10f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(0f, 150f);
+            rect.anchoredPosition = Vector2.zero;
+            button.GetComponentInChildren<UnityEngine.UI.Text>().fontSize = 44;
             button.onClick.AddListener(() => audioHub.Play("ui"));
             button.onClick.AddListener(() => action());
+            sizeAudit.Capture(root, mode.ToString());
         }
 
         void ReturnFromShowcase()

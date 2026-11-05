@@ -20,6 +20,7 @@ namespace RHMG.Runtime
                 FailAutopilot(fail, "Expected Menu before starting");
                 yield break;
             }
+            automationActive = true;
 
             yield return Capture("00_menu");
             StartRun();
@@ -33,9 +34,12 @@ namespace RHMG.Runtime
             for (int floor = 1; floor <= Catalog.FloorCount; floor++)
             {
                 float started = Time.realtimeSinceStartup;
+                int startedFrame = Time.frameCount;
                 bool floorRealCombat = realCombatFloors > 0 ? floor <= realCombatFloors : realCombat;
                 bool combatCaptured = false;
                 bool bossCaptured = false;
+                bool runRightCaptured = false;
+                bool runLeftCaptured = false;
                 while (mode == Mode.Tower && run.CurrentFloor == floor)
                 {
                     if (Time.realtimeSinceStartup - started > AutopilotFloorTimeout)
@@ -48,6 +52,17 @@ namespace RHMG.Runtime
                     {
                         float elapsed = Time.realtimeSinceStartup - started;
                         combat.SetMoveInput(new Vector2(Mathf.Sin(elapsed), Mathf.Cos(elapsed)));
+                        // Path is (sin t, cos t): heading right near t=1.6 s, left near t=4.8 s (billboard flip evidence).
+                        if (floor == 1 && !runRightCaptured && elapsed >= 1.6f && Time.frameCount - startedFrame > 60)
+                        {
+                            runRightCaptured = true;
+                            yield return Capture("01d_run_right");
+                        }
+                        if (floor == 1 && !runLeftCaptured && elapsed >= 4.8f && Time.frameCount - startedFrame > 60)
+                        {
+                            runLeftCaptured = true;
+                            yield return Capture("01e_run_left");
+                        }
                         if (floor == 1 && !combatCaptured && elapsed >= 6f && HasLiveEnemy())
                         {
                             yield return Capture("01_combat");
@@ -79,6 +94,7 @@ namespace RHMG.Runtime
                         FailAutopilot(fail, "Floor " + floor + " did not open Upgrade");
                         yield break;
                     }
+                    if (floor == 1) yield return Capture("01c_upgrade");
                     var choices = run.Upgrades.RollChoices();
                     if (choices.Count == 0)
                     {
@@ -197,6 +213,7 @@ namespace RHMG.Runtime
                 }
             }
             AutopilotStep("events.csv contains all nine C5 event types");
+            automationActive = false;
             Debug.Log("[Autopilot] PASS");
         }
 
@@ -207,6 +224,7 @@ namespace RHMG.Runtime
                 FailAutopilot(fail, "Expected Menu before starting real combat");
                 yield break;
             }
+            automationActive = true;
 
             StartRun();
             float started = Time.realtimeSinceStartup;
@@ -228,6 +246,7 @@ namespace RHMG.Runtime
                 FailAutopilot(fail, "Floor 1 real combat did not clear while the player was alive");
                 yield break;
             }
+            automationActive = false;
             Debug.Log("[Autopilot] Floor 1 real combat cleared in " +
                 (Time.realtimeSinceStartup - started).ToString("0.0") + "s");
         }
@@ -252,8 +271,9 @@ namespace RHMG.Runtime
             Debug.Log("[Autopilot] step " + name + " OK");
         }
 
-        static void FailAutopilot(Action<string> fail, string reason)
+        void FailAutopilot(Action<string> fail, string reason)
         {
+            automationActive = false;
             Debug.LogError("[Autopilot] FAIL " + reason);
             fail?.Invoke(reason);
         }

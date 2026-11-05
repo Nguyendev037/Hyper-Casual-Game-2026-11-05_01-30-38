@@ -4,7 +4,6 @@ using RHMG.Runtime.UI;
 using RHMG.Runtime.Visuals;
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace RHMG.Runtime
 {
     public sealed partial class GameFlow
@@ -16,21 +15,28 @@ namespace RHMG.Runtime
             choosing = false;
             Clear();
             AddListPanel();
-            Label("Chọn một nâng cấp", 0.8f);
+            Label("Chọn một nâng cấp", 0.8f, 80);
             var choices = run.Upgrades.RollChoices();
             for (int index = 0; index < choices.Count; index++)
             {
                 string id = choices[index];
                 UpgradeDefinition definition = Catalog.GetUpgrade(id);
                 int stack = run.Upgrades.StackCount(id);
-                Button(
-                    definition.Title + "\n" + definition.Description + "  " + stack + "/2",
-                    0.63f - index * 0.14f,
-                    () => ChooseUpgrade(id),
-                    0.1f);
+                var card = UiKit.Card(root, UiSkin.IconIdFor(id), Loc.T(definition.Title),
+                    Loc.T(definition.Description) + "\n" + Loc.F("Cấp {0}/2", stack), new Vector2(880, 300));
+                RectTransform cardRect = (RectTransform)card.transform;
+                float centerY = 0.65f - index * 0.19f;
+                // Stretch inside the list panel (0.07–0.93) instead of a fixed 960 that overflowed at 966 wide.
+                cardRect.anchorMin = new Vector2(0.09f, centerY);
+                cardRect.anchorMax = new Vector2(0.91f, centerY);
+                cardRect.pivot = new Vector2(0.5f, 0.5f);
+                cardRect.sizeDelta = new Vector2(0f, 300f);
+                cardRect.anchoredPosition = Vector2.zero;
+                card.onClick.AddListener(() => audioHub.Play("ui"));
+                card.onClick.AddListener(() => ChooseUpgrade(id));
             }
+            sizeAudit.Capture(root, mode.ToString());
         }
-
         void ChooseUpgrade(string id)
         {
             if (choosing)
@@ -46,14 +52,13 @@ namespace RHMG.Runtime
                     combat?.Heal(Catalog.HealFallbackAmount);
                 }
                 StartTower();
-                Toast("Tầng " + run.CurrentFloor);
+                Toast(Loc.F("Tầng {0}", run.CurrentFloor));
             }
             catch (InvalidOperationException exception)
             {
                 Debug.LogException(exception);
             }
         }
-
         void ShowRescue()
         {
             SetMode(Mode.Rescue);
@@ -79,7 +84,6 @@ namespace RHMG.Runtime
             Button("Tiếp", 0.25f, CompleteRescue);
             Toast("Ember được giải cứu!");
         }
-
         void CompleteRescue()
         {
             try
@@ -106,27 +110,36 @@ namespace RHMG.Runtime
         void DrawRest()
         {
             Clear();
-            Label("Nơi nghỉ", 0.84f);
-            Label("Đi lại tự do · đồng hồ ngày/đêm tiếp tục", 0.77f, 24);
-            RestGridButton("Dung hợp", 0.27f, 0.05f, DrawFusion);
-            RestGridButton("Tủ đồ", 0.27f, 0.37f, DrawWardrobe);
-            RestGridButton("Kết quả", 0.18f, 0.05f, DrawResult);
-            RestGridButton("Xem tiến hóa tương lai", 0.18f, 0.37f, OpenShowcase);
-            RestGridButton("Chơi lại", 0.09f, 0.05f, StartRun);
-            RestGridButton("Về menu", 0.09f, 0.37f, ShowMenu);
-            DrawRestHud();
+            // Joystick stops at 50% height so the 3x2 grid (rows 0.68 / 0.59, ±66 px) never overlaps it.
+            DrawJoystickArea(0.50f);
+            DrawTopHud("RestHealth", false);
+            Label("Nơi nghỉ", 0.74f, 72);
+            RestGridButton("Dung hợp", 0, 0, DrawFusion);
+            RestGridButton("Tủ đồ", 1, 0, DrawWardrobe);
+            RestGridButton("Kết quả", 2, 0, DrawResult);
+            RestGridButton("Tiến hóa", 0, 1, OpenShowcase);
+            RestGridButton("Chơi lại", 1, 1, StartRun);
+            RestGridButton("Về menu", 2, 1, ShowMenu);
+            DrawCommandControls();
+            UpdateHudBars();
         }
 
-        void RestGridButton(string value, float y, float x, Action action)
+        // Columns stretch with screen width (gap stays ≥ 32 px on 20:9 phones); height fixed at 132.
+        void RestGridButton(string value, int column, int row, Action action)
         {
-            var button = UiKit.Button(root, value, new Vector2(700, 100), new Color(0.22f, 0.18f, 0.22f, 0.96f));
+            var button = UiKit.Button(root, value, new Vector2(300, 132), new Color(0.22f, 0.18f, 0.22f, 0.96f));
             RectTransform rect = (RectTransform)button.transform;
-            rect.anchorMin = new Vector2(x, y);
-            rect.anchorMax = new Vector2(x + 0.29f, y + 0.07f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            float left = 0.04f + column * 0.32f;
+            float centerY = 0.68f - row * 0.09f;
+            rect.anchorMin = new Vector2(left, centerY);
+            rect.anchorMax = new Vector2(left + 0.28f, centerY);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(0f, 132f);
+            rect.anchoredPosition = Vector2.zero;
+            button.GetComponentInChildren<Text>().fontSize = 44;
             button.onClick.AddListener(() => audioHub.Play("ui"));
             button.onClick.AddListener(() => action());
+            sizeAudit.Capture(root, mode.ToString());
         }
 
         void DrawResult()
@@ -142,11 +155,10 @@ namespace RHMG.Runtime
             AddListPanel();
             Label("Chiến thắng · kết quả chuyến đi", 0.67f, 64);
             Label(
-                "Tầng đạt: " + save.highestClearedFloor +
-                "\nVàng nhận: " + (run == null ? 0 : run.GoldEarnedThisRun) +
-                "\nTổng vàng: " + save.gold +
+                Loc.F("Tầng đạt: {0}\nVàng nhận: {1}\nTổng vàng: {2}", save.highestClearedFloor,
+                    run == null ? 0 : run.GoldEarnedThisRun, save.gold) +
                 (run == null ? string.Empty :
-                    "\nThời gian: " + Mathf.FloorToInt(Time.unscaledTime - runStarted) + " giây"),
+                    "\n" + Loc.F("Thời gian: {0} giây", Mathf.FloorToInt(Time.unscaledTime - runStarted))),
                 0.42f,
                 32);
             Button("Quay lại", 0.23f, ReturnToRest);
@@ -167,9 +179,8 @@ namespace RHMG.Runtime
             AddListPanel();
             Label("Thất bại", 0.68f, 64);
             Label(
-                "Tầng đạt: " + save.highestClearedFloor +
-                "\nVàng nhận: " + run.GoldEarnedThisRun +
-                "\nTổng vàng: " + save.gold,
+                Loc.F("Tầng đạt: {0}\nVàng nhận: {1}\nTổng vàng: {2}", save.highestClearedFloor,
+                    run.GoldEarnedThisRun, save.gold),
                 0.48f,
                 32);
             Button("Chơi lại", 0.31f, StartRun);
@@ -200,7 +211,13 @@ namespace RHMG.Runtime
             clock.Paused = pauseReturnClockPaused;
             Time.timeScale = pauseReturnClockPaused ? 0f : 1f;
             if (target == Mode.Tower && combat != null && run != null) DrawHud();
-            else if (target == Mode.Rest) DrawRest();
+            else if (target == Mode.Rest)
+            {
+                // Pause may have been opened from Fusion/Wardrobe (world paused): Rest always resumes it.
+                SetPaused(false);
+                if (combat != null) combat.Running = true;
+                DrawRest();
+            }
             else if (target == Mode.Showcase) DrawShowcaseScreen();
             else ShowMenu();
         }
@@ -219,51 +236,6 @@ namespace RHMG.Runtime
             Button("Tiếp tục", 0.5f, Pause);
             Button("Cài đặt", 0.4f, ShowSettings);
             Button("Về menu", 0.3f, ConfirmLeaveRun);
-        }
-
-        void DrawRestHud()
-        {
-            var hpBar = UiKit.ProgressBar(root, "RestHealth", new Color(0.88f, 0.25f, 0.26f), out hpFill);
-            SetRect(hpBar, new Vector2(0.05f, 0.895f), new Vector2(0.476f, 0.916f));
-            hpText = HudLabel("♥ " + Mathf.CeilToInt(combat.PlayerHp) + "/" + playerMaxHp +
-                " · Tầng " + (run == null ? 0 : run.CurrentFloor) + "/5 · " + save.gold + " vàng",
-                new Vector2(0.05f, 0.94f), new Vector2(0.66f, 0.99f), 40, Color.white);
-            HudLabel("🐕 " + DogTierName(DogProgress.GetTier(save.dogSealMask)),
-                new Vector2(0.05f, 0.85f), new Vector2(0.48f, 0.89f), 40, Color.white);
-            clockText = HudLabel("", new Vector2(0.68f, 0.93f), new Vector2(0.89f, 0.985f), 40, Color.white);
-            RectTransform phase = UiKit.Countdown(root, "PhaseCountdown", out clockFill);
-            SetRect(phase, new Vector2(0.9f, 0.925f), new Vector2(0.99f, 0.975f));
-            var pause = UiKit.CircleButton(root, "Ⅱ",
-                new Color(0.22f, 0.18f, 0.22f, 0.96f));
-            SetRect((RectTransform)pause.transform, new Vector2(0.89f, 0.83f), new Vector2(0.992f, 0.888f));
-            pause.onClick.AddListener(Pause);
-            DrawRestControls();
-            displayedHp = int.MinValue;
-            displayedClock = int.MinValue;
-        }
-
-        void DrawRestControls()
-        {
-            HudLabel("Lệnh tinh linh", new Vector2(0.72f, 0.031f), new Vector2(0.944f, 0.06f),
-                40, CommandElementColor());
-            var command = UiKit.CircleButton(root, CommandElementName(), CommandElementColor());
-            SetRect((RectTransform)command.transform, new Vector2(0.74f, 0.065f),
-                new Vector2(0.944f, 0.18f));
-            command.onClick.AddListener(() => combat?.TryCommand());
-            Image radial = UiKit.Circle(command.transform, "Cooldown", new Color(0.04f, 0.07f, 0.1f, 0.62f));
-            radial.type = Image.Type.Filled;
-            radial.fillMethod = Image.FillMethod.Radial360;
-            radial.fillOrigin = (int)Image.Origin360.Top;
-            radial.fillClockwise = false;
-            radial.raycastTarget = false;
-            commandFill = radial;
-            RectTransform cooldown = (RectTransform)radial.transform;
-            SetRect(cooldown, Vector2.zero, Vector2.one);
-            command.transform.GetChild(0).SetAsLastSibling();
-            var area = UiKit.Panel(root, "JoystickArea", Vector2.zero, new Vector2(0.72f, 0.55f),
-                new Color(0, 0, 0, 0));
-            area.gameObject.AddComponent<RHMG.Runtime.UI.FloatingJoystick>().Changed +=
-                value => combat?.SetMoveInput(value);
         }
 
         void ConfirmLeaveRun()

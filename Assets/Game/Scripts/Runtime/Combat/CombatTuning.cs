@@ -3,13 +3,17 @@ namespace RHMG.Runtime.Combat
     public static class CombatTuning
     {
         public const float ArenaWidth = 12f;
-        public const float ArenaDepth = 16f;
+        public const float ArenaDepth = 20f; // plan02: deeper so the arena fills a portrait screen
         public const float ArenaLimitX = 5.6f;
-        public const float ArenaLimitZ = 7.6f;
+        public const float ArenaLimitZ = 9.6f;
         public const float CameraViewWidth = 13f;
         public const float CameraHeight = 12f;
         public const float CameraMinSize = 7.5f;
         public const float CameraFollowLimitZ = 1.5f;
+        /// <summary>Ground depth the camera must show: arena + bottom margin + strip hidden by the top HUD.</summary>
+        public const float CameraVisibleDepth = ArenaDepth + 4f;
+        /// <summary>Ground point at screen centre is shifted up so the arena top sits just under the HUD.</summary>
+        public const float CameraCenterZ = 1f;
         public const float PlayerRadius = 0.45f;
         public const float PlayerInvulnerability = 0.6f;
         public const float BeetleContactInterval = 0.8f;
@@ -44,6 +48,6 @@ namespace RHMG.Runtime.Combat
         public const float SpawnSafetyRadius = 3.5f;
         public const float SentinelTelegraphMinimum = 0.7f;
         public const float SpawnEdgeX = 5f;
-        public const float SpawnEdgeZ = 7f;
+        public const float SpawnEdgeZ = 9f;
     }
 }

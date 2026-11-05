@@ -1,5 +1,6 @@
 using RHMG.Core;
 using RHMG.Runtime.Combat;
+using RHMG.Runtime.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,9 +8,13 @@ namespace RHMG.Runtime
 {
     public sealed partial class GameFlow
     {
+        // Set while an automated run drives the game: losing window focus (e.g. a capture build
+        // started from a terminal) must not open the pause screen mid-floor.
+        bool automationActive;
+
         void OnApplicationPause(bool paused)
         {
-            if (paused)
+            if (paused && !automationActive)
             {
                 ForcePause();
             }
@@ -17,7 +22,7 @@ namespace RHMG.Runtime
 
         void OnApplicationFocus(bool focused)
         {
-            if (!focused)
+            if (!focused && !automationActive)
             {
                 ForcePause();
             }
@@ -89,42 +94,35 @@ namespace RHMG.Runtime
             if (hpText != null && hp != displayedHp)
             {
                 displayedHp = hp;
-                hpText.text = "♥ " + hp + "/" + playerMaxHp + " · Tầng " +
-                    (run == null ? 0 : run.CurrentFloor) + "/5 · " + save.gold + " vàng";
+                hpText.text = hp + "/" + playerMaxHp;
+            }
+            int floor = run == null ? 0 : run.CurrentFloor;
+            if (floorText != null && floor != displayedFloor)
+            {
+                displayedFloor = floor;
+                floorText.text = Loc.F("Tầng {0}/{1}", floor, Catalog.FloorCount);
+            }
+            if (goldText != null && save.gold != displayedGold)
+            {
+                displayedGold = save.gold;
+                goldText.text = save.gold.ToString();
             }
             int seconds = Mathf.CeilToInt(clock.PhaseRemaining);
             if (clockText != null && (seconds != displayedClock || clock.Phase != displayedPhase))
             {
+                if (clockIcon != null && clock.Phase != displayedPhase)
+                {
+                    Sprite phaseIcon = UiSkin.Icon(clock.Phase == DayPhase.Day ? "icon_sun" : "icon_moon");
+                    if (phaseIcon != null) clockIcon.sprite = phaseIcon;
+                }
                 displayedClock = seconds;
                 displayedPhase = clock.Phase;
-                clockText.text = (clock.Phase == DayPhase.Day ? "☀ Ngày " : "☾ Đêm ") + seconds + "s";
+                clockText.text = Loc.F(clock.Phase == DayPhase.Day ? "Ngày {0}s" : "Đêm {0}s", seconds);
             }
             if (clockFill != null)
             {
                 clockFill.fillAmount = clock.PhaseRemaining / DayNightClock.PhaseLength;
             }
-        }
-
-        void BindHudFields()
-        {
-            Text[] labels = root.GetComponentsInChildren<Text>(true);
-            foreach (Text label in labels)
-            {
-                if (label.text.StartsWith("♥ ")) hpText = label;
-                if (label.text.StartsWith("☀ Ngày ") || label.text.StartsWith("☾ Đêm ")) clockText = label;
-            }
-            Image[] images = root.GetComponentsInChildren<Image>(true);
-            foreach (Image image in images)
-            {
-                Transform parent = image.transform.parent;
-                if (parent == null) continue;
-                if (parent.name == "PlayerHealth") hpFill = image;
-                if (parent.name == "PhaseCountdown") clockFill = image;
-                if (image.name == "Cooldown" || parent.name == "Cooldown") commandFill = image;
-            }
-            displayedHp = int.MinValue;
-            displayedClock = int.MinValue;
-            UpdateHudBars();
         }
     }
 }

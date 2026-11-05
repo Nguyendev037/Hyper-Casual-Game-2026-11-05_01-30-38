@@ -1,4 +1,5 @@
 using UnityEngine;
+using RHMG.Runtime.Visuals;
 
 namespace RHMG.Runtime
 {
@@ -7,6 +8,7 @@ namespace RHMG.Runtime
         Camera menuCamera;
         Light gameLight;
         DayNightView dayNightView;
+        PostFxSetup postFxSetup;
 
         void CreateGameEnvironment()
         {
@@ -26,7 +28,13 @@ namespace RHMG.Runtime
             lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
             gameLight = lightObject.AddComponent<Light>();
             gameLight.type = LightType.Directional;
-            gameLight.intensity = 1.15f;
+            gameLight.color = new Color(1f, 0.89f, 0.69f);
+            gameLight.intensity = 1.1f;
+            gameLight.shadows = LightShadows.Soft;
+
+            postFxSetup = gameObject.AddComponent<PostFxSetup>();
+            postFxSetup.CreateGlobalVolume();
+            postFxSetup.EnableCamera(menuCamera);
 
             dayNightView = gameObject.AddComponent<DayNightView>();
             dayNightView.Bind(clock, menuCamera, gameLight);
@@ -45,10 +53,12 @@ namespace RHMG.Runtime
             {
                 combatCamera.clearFlags = CameraClearFlags.SolidColor;
                 dayNightView.Bind(clock, combatCamera, gameLight);
+                postFxSetup.EnableCamera(combatCamera);
             }
             else
             {
                 dayNightView.Bind(clock, menuCamera, gameLight);
+                postFxSetup.EnableCamera(menuCamera);
             }
             dayNightView.PhaseOnlyWhenPaused = mode == Mode.Showcase;
         }
