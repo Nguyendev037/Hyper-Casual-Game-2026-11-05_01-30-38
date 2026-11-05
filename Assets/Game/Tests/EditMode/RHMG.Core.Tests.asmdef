@@ -1,0 +1,1 @@
+{"name":"RHMG.Core.Tests","rootNamespace":"RHMG.Core.Tests","references":["RHMG.Core","UnityEngine.TestRunner","UnityEditor.TestRunner"],"includePlatforms":["Editor"],"overrideReferences":true,"precompiledReferences":["nunit.framework.dll"],"defineConstraints":["UNITY_INCLUDE_TESTS"]}

@@ -1,0 +1,19 @@
+{
+    "name": "RHMG.Editor",
+    "rootNamespace": "RHMG.EditorTools",
+    "references": [
+        "RHMG.Core",
+        "RHMG.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
