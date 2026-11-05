@@ -64,6 +64,11 @@ namespace RHMG.Runtime.Visuals
                 mfBorder.sharedMesh = MeshBuilder.FanOutline(CombatTuning.WardenFanRadius,
                     CombatTuning.WardenFanAngle, 24);
             }
+            else if (shape != null && shape.name == "BossFan")
+            {
+                mfBorder.sharedMesh = MeshBuilder.FanOutline(CombatTuning.BossFanRadius,
+                    CombatTuning.BossFanAngle, 24);
+            }
             else if (shape != null && shape.name == "Dash")
             {
                 mfBorder.sharedMesh = MeshBuilder.RectangleOutline(CombatTuning.SentinelTelegraphWidth,
@@ -81,6 +86,40 @@ namespace RHMG.Runtime.Visuals
 
             view.FillTransform = fill.transform;
             view.SetFill(0f);
+            return go;
+        }
+
+        /// <summary>Gold ring under an elite enemy ("viền vàng", SPEC-P01 §3).</summary>
+        public static GameObject EliteRing(float radius)
+        {
+            GameObject go = new GameObject("EliteRing");
+            go.AddComponent<MeshFilter>().sharedMesh = MeshBuilder.Ring(radius * 0.86f, radius, 32);
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = MaterialLibrary.Unlit(Palette.LightGold);
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            go.transform.localPosition = Vector3.up * 0.04f;
+            return go;
+        }
+
+        /// <summary>Unit-radius flat ring (scale it to the wanted radius): storm edge, station tiles.</summary>
+        public static GameObject UnitRing(Color c, float thickness01, bool transparent)
+        {
+            GameObject go = new GameObject("UnitRing");
+            go.AddComponent<MeshFilter>().sharedMesh = MeshBuilder.Ring(1f - thickness01, 1f, 72);
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = transparent ? MaterialLibrary.UnlitTransparent(c) : MaterialLibrary.Unlit(c);
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            return go;
+        }
+
+        /// <summary>Unit-radius flat disc (scale it to the wanted radius).</summary>
+        public static GameObject UnitDisc(Color c)
+        {
+            GameObject go = new GameObject("UnitDisc");
+            go.AddComponent<MeshFilter>().sharedMesh = MeshBuilder.Disc(1f, 40);
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = MaterialLibrary.UnlitTransparent(c);
+            mr.shadowCastingMode = ShadowCastingMode.Off;
             return go;
         }
 

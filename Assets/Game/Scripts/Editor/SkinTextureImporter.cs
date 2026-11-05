@@ -6,15 +6,28 @@ namespace RHMG.EditorTools
 {
     public sealed class SkinTextureImporter : AssetPostprocessor
     {
+        // 9-slice borders (Unity order L, B, R, T) from the Gemini layout, staging/E/ui_layout.json "sprites" (plan 04 lot E).
         static readonly Dictionary<string, Vector4> Borders = new Dictionary<string, Vector4>
         {
             { "panel", new Vector4(64, 64, 64, 64) },
-            { "card", new Vector4(56, 56, 56, 56) },
-            { "button_primary", new Vector4(48, 48, 48, 48) },
-            { "button_secondary", new Vector4(48, 48, 48, 48) },
-            { "bar_frame", new Vector4(24, 24, 24, 24) },
-            { "bar_fill", new Vector4(24, 24, 24, 24) },
-            { "toast", new Vector4(40, 40, 40, 40) }
+            { "panel_station", new Vector4(64, 64, 64, 64) },
+            { "card", new Vector4(48, 48, 48, 48) },
+            { "card_common", new Vector4(48, 48, 48, 48) },
+            { "card_rare", new Vector4(48, 48, 48, 48) },
+            { "card_spirit", new Vector4(48, 48, 48, 48) },
+            { "button_primary", new Vector4(64, 48, 64, 48) },
+            { "button_secondary", new Vector4(64, 48, 64, 48) },
+            { "circle_button", new Vector4(64, 64, 64, 64) },
+            { "tab_on", new Vector4(48, 48, 48, 48) },
+            { "tab_off", new Vector4(48, 48, 48, 48) },
+            { "toast", new Vector4(64, 48, 64, 48) },
+            { "bar_frame", new Vector4(48, 48, 48, 48) },
+            { "bar_fill", new Vector4(48, 48, 48, 48) },
+            { "xp_bar_frame", new Vector4(48, 48, 48, 48) },
+            { "xp_bar_fill", new Vector4(48, 48, 48, 48) },
+            { "boss_bar_frame", new Vector4(48, 48, 48, 48) },
+            { "boss_bar_fill", new Vector4(48, 48, 48, 48) },
+            { "badge_equipped", new Vector4(48, 48, 48, 48) }
         };
 
         void OnPreprocessTexture()
@@ -42,7 +55,9 @@ namespace RHMG.EditorTools
                 importer.alphaIsTransparency = true;
                 importer.maxTextureSize = 1024;
                 importer.filterMode = FilterMode.Bilinear;
-                bool spirit = System.IO.Path.GetFileNameWithoutExtension(path).StartsWith("spirit_");
+                string spriteId = System.IO.Path.GetFileNameWithoutExtension(path);
+                // Floating / flat things pivot at the centre: spirits, spirit stones, station rune tiles.
+                bool spirit = spriteId.StartsWith("spirit_") || spriteId.StartsWith("gem_") || spriteId.StartsWith("tile_");
                 TextureImporterSettings settings = new TextureImporterSettings();
                 importer.ReadTextureSettings(settings);
                 settings.spriteAlignment = (int)(spirit ? SpriteAlignment.Center : SpriteAlignment.BottomCenter);

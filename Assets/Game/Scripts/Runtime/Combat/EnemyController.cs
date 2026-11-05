@@ -10,7 +10,23 @@ namespace RHMG.Runtime.Combat
         public EnemyKind Kind { get; private set; }
         public float Radius { get; private set; }
         public bool Alive => health != null && !health.Dead;
+        /// <summary>False while a boss is shielded or changing phase: auto-aim and bullets ignore it.</summary>
+        public bool Targetable => Alive && (brain == null || !brain.Untargetable);
+        public bool Elite { get; private set; }
+        public bool IsAnchor { get; private set; }
+        public bool IsBoss => !IsAnchor && !isDummy && Kind >= EnemyKind.CageWarden;
+        /// <summary>Index of the pool this controller belongs to (EnemyKind value, or AnchorPoolIndex).</summary>
+        public int PoolIndex { get; private set; }
+        public float HpFraction => health == null ? 0f : health.Current / health.Max;
+        public float MaxHealth => health == null ? 0f : health.Max;
+        public float CurrentHealth => health == null ? 0f : health.Current;
         public event Action<EnemyController> OnKilled;
+        /// <summary>Boss phase 1..3 (0 for non-bosses). Debug/autopilot read this.</summary>
+        public int BossPhase => brain != null ? brain.Phase : 0;
+        public bool BossPurifying => brain != null && brain.Purifying;
+
+
+        public const int AnchorPoolIndex = 6;
 
         private CombatWorld world;
         private Action<EnemyController> release;
@@ -23,28 +39,38 @@ namespace RHMG.Runtime.Combat
         private float attackTimer;
         private float telegraphRemaining;
         private float chargeDistance;
-        private float bossRest = 1.6f;
+        private float damageMult = 1f;
         private Vector3 lockedTarget;
         private Vector3 chargeDirection;
-        private Vector3 attackDirection;
         private bool charging;
         private bool sentinelTelegraph;
-        private bool nextSlam;
         private TelegraphView warning;
         private bool warningDisc;
         private EnemyKind warningPoolKind;
         private Vector3 eyeShotDirection;
         private GameObject visual;
+        private SpriteBillboard billboard;
+        private GameObject eliteRing;
         private Facing facing;
         private bool isDummy;
         private TrainingDummy dummyDisplay;
+        private BossBrain brain;
+        private Vector3 visualBaseScale = Vector3.one;
+        private Action<EnemyController> anchorKilled;
 
-        public void Init(CombatWorld ownerWorld, Action<EnemyController> releaseAction, EnemyKind kind)
+        public void Init(CombatWorld ownerWorld, Action<EnemyController> releaseAction, EnemyKind kind, int poolIndex)
         {
             world = ownerWorld;
             release = releaseAction;
             Kind = kind;
-            visual = CharacterFactory.CreateEnemy(kind, transform);
+            PoolIndex = poolIndex;
+            IsAnchor = poolIndex == AnchorPoolIndex;
+            visual = IsAnchor ? CharacterFactory.CreateAnchor(transform) : CharacterFactory.CreateEnemy(kind, transform);
+            billboard = visual.GetComponentInChildren<SpriteBillboard>();
+            visualBaseScale = visual.transform.localScale;
+            eliteRing = VfxFactory.EliteRing(0.9f);
+            eliteRing.transform.SetParent(transform, false);
+            eliteRing.SetActive(false);
         }
 
         public void ConfigureDummy(CombatWorld combatWorld, TrainingDummy display)
@@ -57,27 +83,103 @@ namespace RHMG.Runtime.Combat
             health = new Health(99999f);
         }
 
-        public void Spawn(EnemyKind kind, Vector3 position)
+        public void Spawn(EnemyKind kind, Vector3 position, float hpMult = 1f, float dmgMult = 1f, bool elite = false)
         {
             Kind = kind;
+            if (billboard != null)
+            {
+                billboard.Revive();
+                billboard.SetMotion(0f);
+            }
             transform.position = position;
             facing = default; // pooled enemies must not keep the previous life's yaw
             EnemyDefinition definition = Catalog.GetEnemy(kind);
             Radius = definition.Radius;
-            health = new Health(definition.MaxHp);
+            Elite = elite;
+            damageMult = dmgMult;
+            float hp = definition.MaxHp * hpMult * (elite ? CombatTuning.EliteHpMult : 1f);
+            health = new Health(hp);
             health.Died += Die;
+            transform.localScale = elite ? Vector3.one * CombatTuning.EliteScale : Vector3.one;
+            if (visual != null)
+            {
+                visual.transform.localScale = visualBaseScale;
+            }
+
+            if (elite)
+            {
+                Radius *= CombatTuning.EliteScale;
+            }
+
+            if (eliteRing != null)
+            {
+                eliteRing.SetActive(elite);
+            }
+
             slowAmount = 0f;
             slowRemaining = 0f;
             burnDps = 0f;
             burnRemaining = 0f;
             contactTimer = 0f;
             attackTimer = definition.AttackInterval;
-            bossRest = CombatTuning.WardenRecovery;
-            nextSlam = false;
             charging = false;
             sentinelTelegraph = false;
             warningDisc = false;
+            brain = null;
+            if (IsAnchor)
+            {
+                Radius = 0.8f;
+            }
+            else if (kind >= EnemyKind.CageWarden)
+            {
+                brain = new BossBrain(this, world, kind, world.CurrentFloor, dmgMult);
+            }
+
             gameObject.SetActive(true);
+            if (brain != null)
+            {
+                world.Session.NotifyBoss(1f);
+            }
+        }
+
+        /// <summary>Anchor of the Blue Hair Guy: stationary target with the given HP.</summary>
+        public void SpawnAnchor(Vector3 position, float hp, Action<EnemyController> onKilled)
+        {
+            Kind = EnemyKind.SandBeetle;
+            transform.position = position;
+            transform.localScale = Vector3.one;
+            Radius = 0.8f;
+            Elite = false;
+            damageMult = 1f;
+            health = new Health(hp);
+            health.Died += Die;
+            slowAmount = 0f;
+            slowRemaining = 0f;
+            burnDps = 0f;
+            burnRemaining = 0f;
+            brain = null;
+            anchorKilled = onKilled;
+            if (eliteRing != null)
+            {
+                eliteRing.SetActive(false);
+            }
+
+            gameObject.SetActive(true);
+        }
+
+        /// <summary>Blue Hair Guy kneels instead of dying (SPEC-P03 §2b).</summary>
+        public void KneelVisual()
+        {
+            if (visual != null)
+            {
+                Vector3 s = visualBaseScale;
+                visual.transform.localScale = new Vector3(s.x, s.y * 0.7f, s.z);
+            }
+        }
+
+        public void PlayWindup(float seconds)
+        {
+            if (billboard != null) billboard.PlayWindup(seconds);
         }
 
         public void TakeDamage(float amount, Vector3 from)
@@ -85,6 +187,15 @@ namespace RHMG.Runtime.Combat
             if (!Alive)
             {
                 return;
+            }
+
+            if (brain != null)
+            {
+                amount = brain.FilterDamage(amount, health);
+                if (amount <= 0f)
+                {
+                    return;
+                }
             }
 
             health.Damage(amount, from);
@@ -99,16 +210,36 @@ namespace RHMG.Runtime.Combat
 
             CombatFeedback.Play("hit");
             // Die() may already have returned this enemy to the pool (health == null).
-            if (Kind == EnemyKind.CageWarden && health != null)
+            if (brain != null && health != null)
             {
                 world.Session.NotifyBoss(health.Current / health.Max);
+                brain.AfterDamage(health);
+            }
+        }
+
+        /// <summary>Kills regardless of the boss shield (floor end, debug).</summary>
+        public void ForceKill()
+        {
+            if (Alive)
+            {
+                health.Damage(health.Max * 10f + 1f, transform.position);
             }
         }
 
         public void ApplyEffects(float slow, float burn, float duration)
         {
-            float resist = Kind == EnemyKind.CageWarden ? 0.5f : 1f;
-            slowAmount = Mathf.Max(slowAmount, Mathf.Clamp01(slow) * resist);
+            float resist = 1f;
+            float cap = 1f;
+            if (Kind == EnemyKind.CageWarden && !IsAnchor)
+            {
+                resist = 0.5f;
+            }
+            else if ((Kind == EnemyKind.SandQueen || Kind == EnemyKind.BlueHairGuy) && !IsAnchor)
+            {
+                cap = 0.2f; // SPEC-P03 §2: bosses are not slowed beyond 20%
+            }
+
+            slowAmount = Mathf.Max(slowAmount, Mathf.Min(cap, Mathf.Clamp01(slow) * resist));
             slowRemaining = Mathf.Max(slowRemaining, duration * resist);
             burnDps = Mathf.Max(burnDps, burn);
             burnRemaining = Mathf.Max(burnRemaining, duration);
@@ -121,22 +252,30 @@ namespace RHMG.Runtime.Combat
                 return;
             }
 
-            EnemyDefinition definition = Catalog.GetEnemy(Kind);
             TickEffects(deltaTime);
             if (!Alive)
             {
                 return;
             }
+
+            if (IsAnchor)
+            {
+                return;
+            }
+
+            EnemyDefinition definition = Catalog.GetEnemy(Kind);
+            Vector3 beforeMove = transform.position;
             Vector3 toPlayer = CombatMath.Direction(transform.position, world.Player.transform.position);
             if (visual != null)
             {
                 facing.Face(toPlayer);
-                facing.Step(deltaTime, Kind == EnemyKind.CageWarden ? 120f : 360f);
+                facing.Step(deltaTime, IsBoss ? 120f : 360f);
                 visual.transform.rotation = facing.Rotation;
             }
-            if (Kind == EnemyKind.CageWarden)
+
+            if (brain != null)
             {
-                StepBoss(deltaTime, toPlayer, definition.MoveSpeed);
+                brain.Step(deltaTime, toPlayer, definition.MoveSpeed, 1f - slowAmount);
             }
             else if (Kind == EnemyKind.SandBeetle)
             {
@@ -149,6 +288,11 @@ namespace RHMG.Runtime.Combat
             else
             {
                 StepSentinel(deltaTime, definition, toPlayer);
+            }
+            if (billboard != null)
+            {
+                float speed = CombatMath.Flat(transform.position - beforeMove).magnitude / Mathf.Max(deltaTime, 0.0001f);
+                billboard.SetMotion(speed / Mathf.Max(0.01f, definition.MoveSpeed));
             }
         }
 
@@ -172,7 +316,8 @@ namespace RHMG.Runtime.Combat
 
         private void StepBeetle(float deltaTime, EnemyDefinition definition, Vector3 direction)
         {
-            transform.position += direction * definition.MoveSpeed * (1f - slowAmount) * deltaTime;
+            transform.position = CombatMath.ClampArena(transform.position +
+                direction * definition.MoveSpeed * (1f - slowAmount) * deltaTime);
             if (!CombatMath.Overlap(transform.position, Radius, world.Player.transform.position,
                 CombatTuning.PlayerRadius))
             {
@@ -182,7 +327,7 @@ namespace RHMG.Runtime.Combat
             contactTimer -= deltaTime;
             if (contactTimer <= 0f)
             {
-                world.Player.TakeDamage(definition.ContactDamage, transform.position);
+                world.Player.TakeDamage(definition.ContactDamage * damageMult, transform.position);
                 contactTimer = CombatTuning.BeetleContactInterval;
             }
         }
@@ -193,11 +338,11 @@ namespace RHMG.Runtime.Combat
             float speed = definition.MoveSpeed * (1f - slowAmount);
             if (distance < CombatTuning.EyeMinDistance)
             {
-                transform.position -= direction * speed * deltaTime;
+                transform.position = CombatMath.ClampArena(transform.position - direction * speed * deltaTime);
             }
             else if (distance > CombatTuning.EyeMaxDistance)
             {
-                transform.position += direction * speed * deltaTime;
+                transform.position = CombatMath.ClampArena(transform.position + direction * speed * deltaTime);
             }
 
             if (warning != null)
@@ -207,7 +352,8 @@ namespace RHMG.Runtime.Combat
                 if (telegraphRemaining <= 0f)
                 {
                     world.Fire(ProjectileOwner.Enemy, transform.position + Vector3.up * 0.5f, eyeShotDirection,
-                        definition.AttackDamage, CombatTuning.EyeProjectileSpeed, null, Palette.EnemyPurple);
+                        definition.AttackDamage * damageMult, CombatTuning.EyeProjectileSpeed, null,
+                        Palette.EnemyPurple);
                     HideWarning();
                     attackTimer = definition.AttackInterval;
                 }
@@ -226,6 +372,7 @@ namespace RHMG.Runtime.Combat
                 warning.transform.position = transform.position;
                 warning.transform.rotation = Quaternion.LookRotation(eyeShotDirection);
                 telegraphRemaining = Mathf.Max(CombatTuning.EyeTelegraphTime, definition.TelegraphTime);
+                PlayWindup(telegraphRemaining);
             }
         }
 
@@ -252,7 +399,7 @@ namespace RHMG.Runtime.Combat
             if (charging)
             {
                 float distance = Mathf.Min(Catalog.SentinelDashSpeed * deltaTime, chargeDistance);
-                transform.position += chargeDirection * distance;
+                transform.position = CombatMath.ClampArena(transform.position + chargeDirection * distance);
                 chargeDistance -= distance;
                 if (chargeDistance <= 0f)
                 {
@@ -263,7 +410,7 @@ namespace RHMG.Runtime.Combat
                 if (CombatMath.Overlap(transform.position, Radius, world.Player.transform.position,
                     CombatTuning.PlayerRadius))
                 {
-                    world.Player.TakeDamage(definition.AttackDamage, transform.position);
+                    world.Player.TakeDamage(definition.AttackDamage * damageMult, transform.position);
                 }
 
                 return;
@@ -284,10 +431,10 @@ namespace RHMG.Runtime.Combat
             warning.transform.position = transform.position;
             warning.transform.rotation = Quaternion.LookRotation(chargeDirection);
             telegraphRemaining = Mathf.Max(CombatTuning.SentinelTelegraphMinimum, definition.TelegraphTime);
+            PlayWindup(telegraphRemaining);
             sentinelTelegraph = true;
             charging = false;
             attackTimer = definition.AttackInterval;
         }
-
     }
 }

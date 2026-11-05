@@ -15,6 +15,10 @@ namespace RHMG.Core
         // Sentinel dash data (EnemyDefinition.MoveSpeed holds the dash speed).
         public const float SentinelDashSpeed = 9f;
 
+        // Boss base HP BEFORE HpMult(floor); tuned by BalanceProbeTests (SPEC-P03 §3).
+        public const float QueenBaseHp = 1700f;
+        public const float BlueHairBaseHp = 1700f;
+
         public static readonly IReadOnlyList<EnemyDefinition> Enemies = BuildEnemies();
         public static readonly IReadOnlyList<FloorDefinition> Floors = BuildFloors();
 
@@ -51,44 +55,58 @@ namespace RHMG.Core
                 new EnemyDefinition(EnemyKind.SandBeetle, "Bọ Cát", 30f, 8f, 0f, 0f, 2.2f, 0.45f, 0f),
                 new EnemyDefinition(EnemyKind.SandEye, "Mắt Cát", 20f, 0f, 10f, 2f, 1.2f, 0.4f, 0.6f),
                 new EnemyDefinition(EnemyKind.Sentinel, "Lính Gác", 45f, 0f, 15f, 3f, SentinelDashSpeed, 0.5f, 0.7f),
-                new EnemyDefinition(EnemyKind.CageWarden, "Hộ Vệ Lồng", 700f, 0f, 20f, 3f, 1.5f, 1.2f, 0.9f)
+                new EnemyDefinition(EnemyKind.CageWarden, "Hộ Vệ Lồng", 700f, 0f, 20f, 3f, 1.5f, 1.2f, 0.9f),
+                new EnemyDefinition(EnemyKind.SandQueen, "Nữ Hoàng Cát Lồng", QueenBaseHp, 0f, 18f, 3.5f, 1.8f, 2.0f, 0.7f),
+                new EnemyDefinition(EnemyKind.BlueHairGuy, "Blue Hair Guy", BlueHairBaseHp, 0f, 20f, 3f, 3.0f, 1.0f, 0.9f)
             };
         }
 
-        private static WaveDefinition Wave(float delay, params (EnemyKind kind, int count)[] spawns)
+        private static string HintFor(int floor)
         {
-            return new WaveDefinition(spawns, delay);
+            switch (floor)
+            {
+                case 1: return "Kéo joystick để di chuyển, phép tự bắn";
+                case 2: return "Mắt Cát bắn từ xa, hãy né";
+                case 3: return "Lính Gác sẽ lao tới sau cảnh báo";
+                case 4: return "Đi lại gần linh thạch để nhặt, đủ linh thạch sẽ lên cấp";
+                case 5: return "Hộ vệ tầng 5: tránh vòng đập và quạt đạn";
+                case 50: return "Nữ Hoàng Cát Lồng: tránh vạch đỏ báo trước";
+                case 100: return "Blue Hair Guy: phá ba neo để làm anh choáng";
+                default: return null;
+            }
         }
 
+        // One wave per floor holding the EXPECTED composition of SpawnBudget (the runtime spawns by weights).
         private static IReadOnlyList<FloorDefinition> BuildFloors()
         {
-            const EnemyKind beetle = EnemyKind.SandBeetle;
-            const EnemyKind eye = EnemyKind.SandEye;
-            const EnemyKind sentinel = EnemyKind.Sentinel;
-            const EnemyKind warden = EnemyKind.CageWarden;
-
-            return new FloorDefinition[]
+            FloorDefinition[] floors = new FloorDefinition[SurvivorTuning.FloorCount];
+            for (int f = 1; f <= SurvivorTuning.FloorCount; f++)
             {
-                new FloorDefinition(1, false,
-                    new WaveDefinition[] { Wave(0f, (beetle, 3)), Wave(10f, (beetle, 3)) },
-                    "Kéo joystick để di chuyển, phép tự bắn"),
-                new FloorDefinition(2, false,
-                    new WaveDefinition[] { Wave(0f, (beetle, 4), (eye, 1)), Wave(10f, (beetle, 2), (eye, 1)) },
-                    "Mắt Cát bắn từ xa, hãy né"),
-                new FloorDefinition(3, false,
-                    new WaveDefinition[] { Wave(0f, (beetle, 2), (sentinel, 2)), Wave(10f, (beetle, 2), (sentinel, 1)) },
-                    "Lính Gác sẽ lao tới sau cảnh báo"),
-                new FloorDefinition(4, false,
-                    new WaveDefinition[]
-                    {
-                        Wave(0f, (beetle, 2), (eye, 2), (sentinel, 1)),
-                        Wave(10f, (beetle, 1), (eye, 1), (sentinel, 1))
-                    },
-                    "Dùng nút lệnh khi bị vây"),
-                new FloorDefinition(5, true,
-                    new WaveDefinition[] { Wave(0f, (warden, 1), (beetle, 2)), Wave(12f, (beetle, 2)) },
-                    "Hộ vệ tầng 5: tránh vòng đập và quạt đạn")
-            };
+                SpawnBudget b = FloorPlan.Budget(f);
+                float sum = b.BeetleW + b.EyeW + b.SentinelW;
+                int eye = (int)System.Math.Round(b.Total * b.EyeW / sum, System.MidpointRounding.AwayFromZero);
+                int sentinel = (int)System.Math.Round(b.Total * b.SentinelW / sum, System.MidpointRounding.AwayFromZero);
+                int beetle = System.Math.Max(0, b.Total - eye - sentinel);
+
+                List<(EnemyKind kind, int count)> spawns = new List<(EnemyKind kind, int count)>();
+                EnemyKind? boss = FloorPlan.BossKind(f);
+                if (boss.HasValue)
+                {
+                    spawns.Add((boss.Value, 1));
+                }
+
+                if (beetle > 0) { spawns.Add((EnemyKind.SandBeetle, beetle)); }
+                if (eye > 0) { spawns.Add((EnemyKind.SandEye, eye)); }
+                if (sentinel > 0) { spawns.Add((EnemyKind.Sentinel, sentinel)); }
+
+                floors[f - 1] = new FloorDefinition(
+                    f,
+                    FloorPlan.Kind(f) != FloorKind.Normal,
+                    new WaveDefinition[] { new WaveDefinition(spawns, 0f) },
+                    HintFor(f));
+            }
+
+            return floors;
         }
     }
 }

@@ -127,7 +127,7 @@ namespace RHMG.Runtime
             combat = CombatSession.Create(modeRoot, new CombatSetup
             {
                 Stats = stats,
-                SpiritId = spiritId,
+                Spirits = run == null ? null : run.Spirits.Slots,
                 DogTier = DogProgress.GetTier(save.dogSealMask),
                 Mounted = false,
                 Showcase = false,

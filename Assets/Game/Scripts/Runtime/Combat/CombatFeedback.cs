@@ -32,20 +32,37 @@ namespace RHMG.Runtime.Combat
 
         public static void Play(string id)
         {
-            if (instance == null || instance.audioSource == null)
+            // SPEC-P07: every combat sound goes through AudioHub's voice limits (dense survivor fights must not clip).
+            if (AudioHub.Instance != null)
             {
-                return;
+                AudioHub.Instance.Play(id);
+            }
+            else if (instance != null && instance.audioSource != null && !AudioHub.SilentRun)
+            {
+                AudioClip clip = ProceduralAudio.Get(id);
+                if (clip != null)
+                {
+                    instance.audioSource.PlayOneShot(clip, 0.4f);
+                }
             }
 
-            AudioClip clip = ProceduralAudio.Get(id);
-            if (clip != null)
+            if (instance == null)
             {
-                instance.audioSource.PlayOneShot(clip);
+                return;
             }
 
             if (id == "hurt")
             {
                 instance.shakeRemaining = 0.12f;
+            }
+        }
+
+        /// <summary>Camera shake (boss phase change, purify window).</summary>
+        public static void Shake(float seconds)
+        {
+            if (instance != null && instance.shakeEnabled)
+            {
+                instance.shakeRemaining = Mathf.Max(instance.shakeRemaining, seconds);
             }
         }
 

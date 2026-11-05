@@ -22,6 +22,7 @@ namespace RHMG.Runtime
             menuCamera.clearFlags = CameraClearFlags.SolidColor;
             menuCamera.depth = -1f;
             cameraObject.AddComponent<AudioListener>();
+            cameraObject.AddComponent<RHMG.Runtime.Audio.MasterAudioLimiter>();
 
             GameObject lightObject = new GameObject("GameDirectionalLight");
             lightObject.transform.SetParent(transform, false);

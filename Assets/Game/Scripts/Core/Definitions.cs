@@ -31,6 +31,12 @@ namespace RHMG.Core
         public readonly float CommandSlow;
         public readonly string AutoText;
         public readonly string CommandText;
+        /// <summary>Base cooldown of the auto-cast skill in seconds (SPEC-P02 §2).</summary>
+        public readonly float CommandCooldown;
+        /// <summary>HP restored per auto shot that hits (before WoodHealPower).</summary>
+        public readonly float AutoHeal;
+        /// <summary>HP restored by the auto-cast skill.</summary>
+        public readonly float CommandHeal;
 
         public SpiritDefinition(
             string id,
@@ -47,7 +53,10 @@ namespace RHMG.Core
             float commandShield,
             float commandSlow,
             string autoText,
-            string commandText)
+            string commandText,
+            float commandCooldown = 12f,
+            float autoHeal = 0f,
+            float commandHeal = 0f)
         {
             Id = id;
             DisplayName = displayName;
@@ -64,6 +73,9 @@ namespace RHMG.Core
             CommandSlow = commandSlow;
             AutoText = autoText;
             CommandText = commandText;
+            CommandCooldown = commandCooldown;
+            AutoHeal = autoHeal;
+            CommandHeal = commandHeal;
         }
     }
 

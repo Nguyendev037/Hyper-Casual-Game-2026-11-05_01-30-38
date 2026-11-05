@@ -1,0 +1,3909 @@
+{
+  "palette": {
+    "bg_warm_cream": "#FFFDF8",
+    "bg_panel_base": "#FFF8F2",
+    "bg_panel_dark": "#2C1E21",
+    "bg_station_deep": "#1E1B33",
+    "accent_red": "#D32F2F",
+    "accent_coral": "#FF5252",
+    "accent_gold": "#F5A623",
+    "accent_gold_bright": "#FFD166",
+    "accent_jade": "#2EC4B6",
+    "accent_blue": "#3A86FF",
+    "accent_purple": "#8338EC",
+    "text_primary": "#2D1E18",
+    "text_secondary": "#7A6658",
+    "text_light": "#FFFFFF",
+    "text_gold": "#FFE8A3",
+    "text_accent_red": "#E53935",
+    "bar_hp": "#E53935",
+    "bar_xp": "#00E5FF",
+    "bar_boss": "#D50000",
+    "card_common_border": "#B0BEC5",
+    "card_rare_border": "#FFB300",
+    "card_spirit_border": "#7C4DFF",
+    "equip_fx": "#FFD700"
+  },
+  "fonts": {
+    "title": "BeVietnamPro-ExtraBold",
+    "body": "BeVietnamPro-SemiBold"
+  },
+  "sprites": {
+    "panel": {
+      "border": [
+        64,
+        64,
+        64,
+        64
+      ]
+    },
+    "panel_station": {
+      "border": [
+        64,
+        64,
+        64,
+        64
+      ]
+    },
+    "card": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "card_common": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "card_rare": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "card_spirit": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "button_primary": {
+      "border": [
+        64,
+        48,
+        64,
+        48
+      ]
+    },
+    "button_secondary": {
+      "border": [
+        64,
+        48,
+        64,
+        48
+      ]
+    },
+    "circle_button": {
+      "border": [
+        64,
+        64,
+        64,
+        64
+      ]
+    },
+    "tab_on": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "tab_off": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "toast": {
+      "border": [
+        64,
+        48,
+        64,
+        48
+      ]
+    },
+    "bar_frame": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "xp_bar_frame": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "boss_bar_frame": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "bar_fill": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "xp_bar_fill": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "boss_bar_fill": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "badge_equipped": {
+      "border": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    "bg_menu": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "bg_station": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "gem_small": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "gem_mid": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "gem_large": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tile_fusion": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tile_spirit_up": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tile_heal": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tile_xp_chest": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "tile_card_chest": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_magnet": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_range": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_multishot": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_pierce": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_armor": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_regen": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_xp_gain": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_upgrade_spirit_power": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit_leaf": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit_bloom": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit_wildfire": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit_bud": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit_growth": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_station": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_level": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_gold": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_heart": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_floor": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_pause": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_settings": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_wardrobe": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_dog": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_fusion": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_spirit": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_restart": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon_credits": {
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "screens": {
+    "hud": [
+      {
+        "id": "xp_bar",
+        "parent": null,
+        "sprite": "xp_bar_frame",
+        "anchorMin": [
+          0.0,
+          1.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          1.0
+        ],
+        "pos": [
+          0,
+          -20
+        ],
+        "size": [
+          -60,
+          52
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "bar_xp",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "xp_bar_fill",
+        "parent": "xp_bar",
+        "sprite": "xp_bar_fill",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.65,
+          1.0
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          6,
+          0
+        ],
+        "size": [
+          -12,
+          -12
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bar_xp",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "level_badge",
+        "parent": "xp_bar",
+        "sprite": "circle_button",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          20,
+          0
+        ],
+        "size": [
+          96,
+          96
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "level_text",
+        "parent": "level_badge",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          80,
+          40
+        ],
+        "text": "12",
+        "font": "title",
+        "fontSize": 36,
+        "color": "accent_red",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "xp_level_label",
+        "parent": "xp_bar",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          400,
+          36
+        ],
+        "text": "Cấp 12 — 65%",
+        "font": "title",
+        "fontSize": 28,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "floor_badge",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          -360,
+          -110
+        ],
+        "size": [
+          240,
+          72
+        ],
+        "text": "Tầng 12/100",
+        "font": "title",
+        "fontSize": 34,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "timer_badge",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -110
+        ],
+        "size": [
+          200,
+          72
+        ],
+        "text": "02:45",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "gold_badge",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          360,
+          -110
+        ],
+        "size": [
+          240,
+          72
+        ],
+        "text": "1,450",
+        "font": "title",
+        "fontSize": 34,
+        "color": "text_primary",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "gold_icon",
+        "parent": "gold_badge",
+        "sprite": "gem_small",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          40,
+          0
+        ],
+        "size": [
+          56,
+          56
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "hp_bar_frame",
+        "parent": null,
+        "sprite": "bar_frame",
+        "anchorMin": [
+          0.0,
+          1.0
+        ],
+        "anchorMax": [
+          0.0,
+          1.0
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          50,
+          -190
+        ],
+        "size": [
+          360,
+          64
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bar_hp",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "hp_bar_fill",
+        "parent": "hp_bar_frame",
+        "sprite": "bar_fill",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.85,
+          1.0
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          6,
+          0
+        ],
+        "size": [
+          -12,
+          -12
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bar_hp",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "hp_text",
+        "parent": "hp_bar_frame",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          280,
+          40
+        ],
+        "text": "480 / 500",
+        "font": "title",
+        "fontSize": 32,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "boss_bar_frame",
+        "parent": null,
+        "sprite": "boss_bar_frame",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -270
+        ],
+        "size": [
+          780,
+          72
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "bar_boss",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "boss_bar_fill",
+        "parent": "boss_bar_frame",
+        "sprite": "boss_bar_fill",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.7,
+          1.0
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          8,
+          0
+        ],
+        "size": [
+          -16,
+          -14
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bar_boss",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "boss_title",
+        "parent": "boss_bar_frame",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          500,
+          40
+        ],
+        "text": "TRÙM TẦNG 12: HỘ VỆ LỒNG CÁT (70%)",
+        "font": "title",
+        "fontSize": 32,
+        "color": "text_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_pause",
+        "parent": null,
+        "sprite": "circle_button",
+        "anchorMin": [
+          1.0,
+          1.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          -80,
+          -190
+        ],
+        "size": [
+          120,
+          120
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "pause_icon",
+        "parent": "btn_pause",
+        "sprite": "icon_pause",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          70,
+          70
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "spirit_dock_1",
+        "parent": null,
+        "sprite": "icon_spirit_leaf",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.0,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          90,
+          90
+        ],
+        "size": [
+          130,
+          130
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "spirit_dock_2",
+        "parent": null,
+        "sprite": "icon_spirit_bloom",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.0,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          240,
+          90
+        ],
+        "size": [
+          130,
+          130
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_coral",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "spirit_dock_3",
+        "parent": null,
+        "sprite": "icon_spirit_wildfire",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          0.0,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          390,
+          90
+        ],
+        "size": [
+          130,
+          130
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_red",
+        "align": "MiddleCenter"
+      }
+    ],
+    "levelup": [
+      {
+        "id": "dim_bg",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_panel_dark",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "modal_title",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          680
+        ],
+        "size": [
+          800,
+          70
+        ],
+        "text": "CHỌN NÂNG CẤP",
+        "font": "title",
+        "fontSize": 56,
+        "color": "accent_gold_bright",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "modal_subtitle",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          610
+        ],
+        "size": [
+          800,
+          44
+        ],
+        "text": "Chọn một ấn ký thăng hoa sức mạnh",
+        "font": "body",
+        "fontSize": 34,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_1",
+        "parent": null,
+        "sprite": "card_common",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          340
+        ],
+        "size": [
+          920,
+          310
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_common_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_1_icon",
+        "parent": "card_1",
+        "sprite": "icon_upgrade_magnet",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          200,
+          200
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_1_name",
+        "parent": "card_1",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          75
+        ],
+        "size": [
+          620,
+          48
+        ],
+        "text": "Nam Châm Ma Thuật",
+        "font": "title",
+        "fontSize": 44,
+        "color": "text_primary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_1_rank",
+        "parent": "card_1",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          25
+        ],
+        "size": [
+          620,
+          36
+        ],
+        "text": "THƯỜNG · BẬC 2/5",
+        "font": "body",
+        "fontSize": 30,
+        "color": "accent_gold",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_1_desc",
+        "parent": "card_1",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -45
+        ],
+        "size": [
+          620,
+          75
+        ],
+        "text": "Tăng +30% bán kính tự động hút linh thạch rơi.",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_2",
+        "parent": null,
+        "sprite": "card_rare",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          920,
+          310
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_rare_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_2_icon",
+        "parent": "card_2",
+        "sprite": "icon_upgrade_multishot",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          200,
+          200
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_red",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_2_name",
+        "parent": "card_2",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          75
+        ],
+        "size": [
+          620,
+          48
+        ],
+        "text": "Bắn Đa Hướng",
+        "font": "title",
+        "fontSize": 44,
+        "color": "accent_red",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_2_rank",
+        "parent": "card_2",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          25
+        ],
+        "size": [
+          620,
+          36
+        ],
+        "text": "QUÝ HIẾM · BẬC 1/3",
+        "font": "body",
+        "fontSize": 30,
+        "color": "accent_gold",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_2_desc",
+        "parent": "card_2",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -45
+        ],
+        "size": [
+          620,
+          75
+        ],
+        "text": "+1 tia đạn ma pháp góc quạt 12 độ bao phủ chiến trường.",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_3",
+        "parent": null,
+        "sprite": "card_spirit",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -340
+        ],
+        "size": [
+          920,
+          310
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_spirit_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_3_icon",
+        "parent": "card_3",
+        "sprite": "icon_spirit_leaf",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          200,
+          200
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "card_3_name",
+        "parent": "card_3",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          75
+        ],
+        "size": [
+          620,
+          48
+        ],
+        "text": "Tinh Linh Lá (Mộc)",
+        "font": "title",
+        "fontSize": 44,
+        "color": "accent_purple",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_3_rank",
+        "parent": "card_3",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          25
+        ],
+        "size": [
+          620,
+          36
+        ],
+        "text": "TINH LINH MỚI · BẬC 1/5",
+        "font": "body",
+        "fontSize": 30,
+        "color": "accent_jade",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "card_3_desc",
+        "parent": "card_3",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -45
+        ],
+        "size": [
+          620,
+          75
+        ],
+        "text": "Gia nhập đội hình: Tự bắn hồi máu & phóng thích Vòng Gai Độc.",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "btn_confirm_card",
+        "parent": null,
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -580
+        ],
+        "size": [
+          480,
+          130
+        ],
+        "text": "XÁC NHẬN CHỌN",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      }
+    ],
+    "station": [
+      {
+        "id": "station_bg",
+        "parent": null,
+        "sprite": "bg_station",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_station_deep",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "panel_station_modal",
+        "parent": null,
+        "sprite": "panel_station",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          960,
+          1340
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_title",
+        "parent": "panel_station_modal",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          580
+        ],
+        "size": [
+          840,
+          60
+        ],
+        "text": "TRẠM LINH THÁNH ĐỊA",
+        "font": "title",
+        "fontSize": 52,
+        "color": "accent_gold_bright",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_subtitle",
+        "parent": "panel_station_modal",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          520
+        ],
+        "size": [
+          840,
+          44
+        ],
+        "text": "Chọn 1 cơ duyên để thăng hoa trước khi mở Cổng",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_slot_1",
+        "parent": "panel_station_modal",
+        "sprite": "card",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          240
+        ],
+        "size": [
+          860,
+          230
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_purple",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_icon_1",
+        "parent": "st_slot_1",
+        "sprite": "tile_fusion",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          180,
+          180
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_purple",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_name_1",
+        "parent": "st_slot_1",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          40
+        ],
+        "size": [
+          580,
+          46
+        ],
+        "text": "Dung Hợp Tinh Linh",
+        "font": "title",
+        "fontSize": 42,
+        "color": "text_primary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "st_desc_1",
+        "parent": "st_slot_1",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -35
+        ],
+        "size": [
+          580,
+          65
+        ],
+        "text": "Hợp nhất Sương + Lá thành Tinh Linh Nở Rộ",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "st_slot_2",
+        "parent": "panel_station_modal",
+        "sprite": "card",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -20
+        ],
+        "size": [
+          860,
+          230
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_icon_2",
+        "parent": "st_slot_2",
+        "sprite": "tile_spirit_up",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          180,
+          180
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_name_2",
+        "parent": "st_slot_2",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          40
+        ],
+        "size": [
+          580,
+          46
+        ],
+        "text": "Thăng Cấp Tinh Linh",
+        "font": "title",
+        "fontSize": 42,
+        "color": "text_primary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "st_desc_2",
+        "parent": "st_slot_2",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -35
+        ],
+        "size": [
+          580,
+          65
+        ],
+        "text": "Tăng trực tiếp 1 cấp cho Tinh Linh đang chọn",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "st_slot_3",
+        "parent": "panel_station_modal",
+        "sprite": "card",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -280
+        ],
+        "size": [
+          860,
+          230
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_coral",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_icon_3",
+        "parent": "st_slot_3",
+        "sprite": "tile_heal",
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          130,
+          0
+        ],
+        "size": [
+          180,
+          180
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "accent_coral",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "st_name_3",
+        "parent": "st_slot_3",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          40
+        ],
+        "size": [
+          580,
+          46
+        ],
+        "text": "Suối Nguồn Thánh Linh",
+        "font": "title",
+        "fontSize": 42,
+        "color": "text_primary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "st_desc_3",
+        "parent": "st_slot_3",
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.5
+        ],
+        "anchorMax": [
+          0.0,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          250,
+          -35
+        ],
+        "size": [
+          580,
+          65
+        ],
+        "text": "Hồi phục ngay 50% sinh lực tối đa cho pháp sư",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "btn_leave_station",
+        "parent": "panel_station_modal",
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -530
+        ],
+        "size": [
+          560,
+          120
+        ],
+        "text": "BƯỚC VÀO CỔNG TIẾP",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      }
+    ],
+    "wardrobe": [
+      {
+        "id": "wardrobe_bg",
+        "parent": null,
+        "sprite": "bg_menu",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_panel_base",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_wardrobe_back",
+        "parent": null,
+        "sprite": "circle_button",
+        "anchorMin": [
+          0.0,
+          1.0
+        ],
+        "anchorMax": [
+          0.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          70,
+          -70
+        ],
+        "size": [
+          100,
+          100
+        ],
+        "text": "<",
+        "font": "title",
+        "fontSize": 44,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "wardrobe_title",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -70
+        ],
+        "size": [
+          600,
+          60
+        ],
+        "text": "TỦ ĐỒ PHÁP SƯ",
+        "font": "title",
+        "fontSize": 52,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "tab_hair",
+        "parent": null,
+        "sprite": "tab_on",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          -300,
+          -185
+        ],
+        "size": [
+          280,
+          84
+        ],
+        "text": "Trang Phục",
+        "font": "title",
+        "fontSize": 34,
+        "color": "accent_red",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "tab_outfit",
+        "parent": null,
+        "sprite": "tab_off",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -185
+        ],
+        "size": [
+          280,
+          84
+        ],
+        "text": "Mũ Nón",
+        "font": "body",
+        "fontSize": 34,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "tab_staff",
+        "parent": null,
+        "sprite": "tab_off",
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          300,
+          -185
+        ],
+        "size": [
+          280,
+          84
+        ],
+        "text": "Gậy Phép",
+        "font": "body",
+        "fontSize": 34,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "preview_dais",
+        "parent": null,
+        "sprite": "circle_button",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -120
+        ],
+        "size": [
+          640,
+          240
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "girl_preview_container",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          160
+        ],
+        "size": [
+          540,
+          960
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_1_card",
+        "parent": null,
+        "sprite": "card_rare",
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          -340,
+          320
+        ],
+        "size": [
+          290,
+          380
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_rare_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_1_name",
+        "parent": "item_1_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          45
+        ],
+        "size": [
+          260,
+          45
+        ],
+        "text": "Choàng Viễn Hành",
+        "font": "title",
+        "fontSize": 30,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "badge_equipped_tag",
+        "parent": "item_1_card",
+        "sprite": "badge_equipped",
+        "anchorMin": [
+          1.0,
+          1.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          -40,
+          -40
+        ],
+        "size": [
+          80,
+          80
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_2_card",
+        "parent": null,
+        "sprite": "card_common",
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          320
+        ],
+        "size": [
+          290,
+          380
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_common_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_2_name",
+        "parent": "item_2_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          45
+        ],
+        "size": [
+          260,
+          45
+        ],
+        "text": "Váy Hoa Hồng",
+        "font": "title",
+        "fontSize": 30,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_3_card",
+        "parent": null,
+        "sprite": "card_common",
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          340,
+          320
+        ],
+        "size": [
+          290,
+          380
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_common_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "item_3_name",
+        "parent": "item_3_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          45
+        ],
+        "size": [
+          260,
+          45
+        ],
+        "text": "Đồng Phục Viện",
+        "font": "title",
+        "fontSize": 30,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_equip_action",
+        "parent": null,
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          75
+        ],
+        "size": [
+          540,
+          130
+        ],
+        "text": "MẶC TRANG PHỤC",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      }
+    ],
+    "menu": [
+      {
+        "id": "menu_bg",
+        "parent": null,
+        "sprite": "bg_menu",
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_panel_base",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "game_logo_text",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -320
+        ],
+        "size": [
+          960,
+          100
+        ],
+        "text": "RED HAIR MAGIC GIRL",
+        "font": "title",
+        "fontSize": 58,
+        "color": "accent_red",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "game_subtitle_text",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          1.0
+        ],
+        "anchorMax": [
+          0.5,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -400
+        ],
+        "size": [
+          960,
+          50
+        ],
+        "text": "Cùng Cún Cưng Chinh Phục 100 Tầng Tháp Linh",
+        "font": "body",
+        "fontSize": 34,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_menu_start",
+        "parent": null,
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          60
+        ],
+        "size": [
+          640,
+          140
+        ],
+        "text": "BẮT ĐẦU CHUYẾN ĐI",
+        "font": "title",
+        "fontSize": 42,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_menu_continue",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -110
+        ],
+        "size": [
+          640,
+          130
+        ],
+        "text": "TIẾP TỤC (TẦNG 12)",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_menu_wardrobe",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -270
+        ],
+        "size": [
+          640,
+          130
+        ],
+        "text": "TỦ ĐỒ PHÁP SƯ",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_menu_spirits",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -430
+        ],
+        "size": [
+          640,
+          130
+        ],
+        "text": "SỔ TINH LINH",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_menu_settings",
+        "parent": null,
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -590
+        ],
+        "size": [
+          640,
+          130
+        ],
+        "text": "CÀI ĐẶT",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "menu_version",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.0
+        ],
+        "anchorMax": [
+          0.5,
+          0.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          60
+        ],
+        "size": [
+          800,
+          45
+        ],
+        "text": "Phiên bản v0.4.0 · Phong Cách Hàn Quốc",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      }
+    ],
+    "pause": [
+      {
+        "id": "pause_dim",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_panel_dark",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "pause_panel",
+        "parent": null,
+        "sprite": "panel",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          900,
+          1320
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "pause_title",
+        "parent": "pause_panel",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          570
+        ],
+        "size": [
+          700,
+          60
+        ],
+        "text": "TẠM DỪNG",
+        "font": "title",
+        "fontSize": 56,
+        "color": "accent_gold_bright",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "pause_quote",
+        "parent": "pause_panel",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          510
+        ],
+        "size": [
+          760,
+          44
+        ],
+        "text": "Chuyến phiêu lưu tạm ngưng, cún đang chợp mắt",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "pause_stats_card",
+        "parent": "pause_panel",
+        "sprite": "card",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          220
+        ],
+        "size": [
+          800,
+          440
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "recap_floor_txt",
+        "parent": "pause_stats_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          140
+        ],
+        "size": [
+          720,
+          45
+        ],
+        "text": "Tiến độ: Cấp 12 · Tầng 12/100",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "recap_spirits_txt",
+        "parent": "pause_stats_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          70
+        ],
+        "size": [
+          720,
+          45
+        ],
+        "text": "Tinh linh đồng hành: Lá (Mộc), Hoa (Hỏa)",
+        "font": "body",
+        "fontSize": 32,
+        "color": "accent_jade",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "recap_cards_txt",
+        "parent": "pause_stats_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          720,
+          45
+        ],
+        "text": "Ấn ký đã chọn: 5 ấn ký (Hút thạch, Đa hướng...)",
+        "font": "body",
+        "fontSize": 32,
+        "color": "accent_purple",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "recap_gold_txt",
+        "parent": "pause_stats_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -70
+        ],
+        "size": [
+          720,
+          45
+        ],
+        "text": "Linh thạch tích luỹ: 1,450",
+        "font": "title",
+        "fontSize": 34,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "recap_time_txt",
+        "parent": "pause_stats_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -140
+        ],
+        "size": [
+          720,
+          45
+        ],
+        "text": "Thời gian đã vượt tháp: 04:12",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_pause_resume",
+        "parent": "pause_panel",
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -150
+        ],
+        "size": [
+          600,
+          125
+        ],
+        "text": "TIẾP TỤC",
+        "font": "title",
+        "fontSize": 40,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_pause_restart",
+        "parent": "pause_panel",
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -300
+        ],
+        "size": [
+          600,
+          120
+        ],
+        "text": "CHƠI LẠI TẦNG NÀY",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_pause_exit",
+        "parent": "pause_panel",
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -440
+        ],
+        "size": [
+          600,
+          120
+        ],
+        "text": "VỀ MENU CHÍNH",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      }
+    ],
+    "result": [
+      {
+        "id": "result_dim",
+        "parent": null,
+        "sprite": null,
+        "anchorMin": [
+          0.0,
+          0.0
+        ],
+        "anchorMax": [
+          1.0,
+          1.0
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          0
+        ],
+        "size": [
+          0,
+          0
+        ],
+        "text": null,
+        "font": "body",
+        "fontSize": 0,
+        "color": "bg_panel_dark",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "result_panel",
+        "parent": null,
+        "sprite": "panel",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          40
+        ],
+        "size": [
+          940,
+          1440
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "result_badge_top",
+        "parent": "result_panel",
+        "sprite": "badge_equipped",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          560
+        ],
+        "size": [
+          200,
+          200
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "accent_gold",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "result_title",
+        "parent": "result_panel",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          430
+        ],
+        "size": [
+          800,
+          60
+        ],
+        "text": "CHIẾN THẮNG QUẢ CẢM",
+        "font": "title",
+        "fontSize": 54,
+        "color": "accent_gold_bright",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "result_subtitle",
+        "parent": "result_panel",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          365
+        ],
+        "size": [
+          800,
+          44
+        ],
+        "text": "Bạn đã vượt qua mọi thử thách của tháp linh!",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "result_stat_card",
+        "parent": "result_panel",
+        "sprite": "card",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          40
+        ],
+        "size": [
+          840,
+          540
+        ],
+        "text": null,
+        "font": "title",
+        "fontSize": 0,
+        "color": "card_rare_border",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "stat_floor_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          180
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Tầng cao nhất đạt:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_floor_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          180
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "TẦNG 100",
+        "font": "title",
+        "fontSize": 40,
+        "color": "accent_red",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "stat_level_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          110
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Cấp độ pháp sư:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_level_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          110
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "CẤP 28",
+        "font": "title",
+        "fontSize": 36,
+        "color": "accent_gold",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "stat_gold_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          40
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Linh thạch thu thập:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_gold_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          40
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "12,850",
+        "font": "title",
+        "fontSize": 36,
+        "color": "accent_gold_bright",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "stat_kills_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          -30
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Quái vật tiêu diệt:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_kills_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          -30
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "1,420",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "stat_spirits_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          -100
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Tinh linh thăng hoa:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_spirits_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          -100
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "4 BẬC (ĐỘI HÌNH MAX)",
+        "font": "title",
+        "fontSize": 32,
+        "color": "accent_jade",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "stat_time_lbl",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.0,
+          0.5
+        ],
+        "pos": [
+          -360,
+          -170
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "Thời gian hoàn thành:",
+        "font": "body",
+        "fontSize": 32,
+        "color": "text_secondary",
+        "align": "MiddleLeft"
+      },
+      {
+        "id": "stat_time_val",
+        "parent": "result_stat_card",
+        "sprite": null,
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          1.0,
+          0.5
+        ],
+        "pos": [
+          360,
+          -170
+        ],
+        "size": [
+          360,
+          44
+        ],
+        "text": "15:30",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleRight"
+      },
+      {
+        "id": "btn_result_again",
+        "parent": "result_panel",
+        "sprite": "button_primary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -350
+        ],
+        "size": [
+          600,
+          125
+        ],
+        "text": "CHINH PHỤC LẠI",
+        "font": "title",
+        "fontSize": 38,
+        "color": "text_light",
+        "align": "MiddleCenter"
+      },
+      {
+        "id": "btn_result_menu",
+        "parent": "result_panel",
+        "sprite": "button_secondary",
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "pos": [
+          0,
+          -490
+        ],
+        "size": [
+          600,
+          120
+        ],
+        "text": "VỀ MENU CHÍNH",
+        "font": "title",
+        "fontSize": 36,
+        "color": "text_primary",
+        "align": "MiddleCenter"
+      }
+    ]
+  }
+}

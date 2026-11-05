@@ -10,12 +10,16 @@ namespace RHMG.Runtime
 {
     public sealed partial class GameFlow
     {
+        bool HasCheckpoint => save != null && save.runCheckpoint != null && save.runCheckpoint.valid;
+
         void ShowMenu()
         {
             StopCombat();
             SetMode(Mode.Menu);
+            audioHub.PlayMusic("music_calm");
             Time.timeScale = 1f;
             Clear();
+            if (DrawLayoutMenu()) return;
             Image backdrop = UiKit.Background(root, "bg_menu");
             backdrop.transform.SetAsFirstSibling();
             Image logoImage = UiKit.Circle(root, "Logo", Color.white);
@@ -34,8 +38,12 @@ namespace RHMG.Runtime
                 seed = 7;
                 Toast("Mẫu thử: mã 7");
             };
-            Label("Bản thử nghiệm 5 tầng", 0.60f, 40);
+            Label("Bản thử nghiệm 100 tầng", 0.60f, 40);
             Label("Cùng cún leo tháp, cứu tinh linh cát", 0.54f, 40);
+            if (HasCheckpoint)
+            {
+                Button(Loc.F("Tiếp tục (Tầng {0})", save.runCheckpoint.floor), 0.38f, ResumeRun);
+            }
             Button("Chơi", 0.27f, StartRun);
             MenuAction("Trình diễn", "icon_showcase", 0.20f, TryOpenShowcase);
             MenuAction("Cài đặt", "icon_settings", 0.50f, ShowSettings);
@@ -76,7 +84,29 @@ namespace RHMG.Runtime
             button.onClick.AddListener(() => action());
             sizeAudit.Capture(root, mode.ToString());
         }
+
+        /// <summary>Menu "Chơi": a brand new run from floor 1 (an old checkpoint is dropped).</summary>
         void StartRun()
+        {
+            if (HasCheckpoint)
+            {
+                save.runCheckpoint.valid = false;
+            }
+            BeginRun(false);
+        }
+
+        /// <summary>Menu "Tiếp tục" and defeat "Chơi lại": rebuild the run from the last station checkpoint (full HP).</summary>
+        void ResumeRun()
+        {
+            BeginRun(true);
+        }
+
+        void RestartAfterDefeat()
+        {
+            BeginRun(HasCheckpoint);
+        }
+
+        void BeginRun(bool resume)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             debugAutoWin = false;
@@ -84,7 +114,20 @@ namespace RHMG.Runtime
             try
             {
                 run = new RunController(save, rewards, seed);
-                run.Start();
+                if (resume)
+                {
+                    if (!run.ResumeFrom(save.runCheckpoint))
+                    {
+                        Debug.LogWarning("[Flow] Checkpoint rejected, starting a new run");
+                        SaveNow();
+                        run = new RunController(save, rewards, seed);
+                        run.Start();
+                    }
+                }
+                else
+                {
+                    run.Start();
+                }
             }
             catch (Exception exception)
             {
@@ -93,84 +136,39 @@ namespace RHMG.Runtime
             }
             runStarted = Time.unscaledTime;
             clock.Reset();
-            // Floor 1 teaches movement only; the borrowed spirit joins on floor 2 (see StartTower).
-            spiritId = null;
+            LevelUpsThisRun = 0;
+            GemPickupsThisRun = 0;
+            StationsLeftThisRun = 0;
+            floorClearPending = false;
+            run.Hp = 0f; // 0 = full HP at the start of a run / after a defeat
+            debugStatsOverride = null;
             Log("run_start", run.RunId);
-            StartTower();
+            if (resume) Log("run_resume", run.CurrentFloor.ToString());
+            EnterCombat(true);
         }
-        void StartTower()
-        {
-            SetMode(Mode.Tower);
-            Time.timeScale = 1f;
-            clock.Paused = false;
-            if (combat != null)
-            {
-                Destroy(combat.gameObject);
-                combat = null;
-            }
-            bool spiritJoined = false;
-            if (!HasSpirit && run.CurrentFloor >= SpiritJoinFloor)
-            {
-                spiritId = Catalog.DemoTrialSpiritIds[0];
-                spiritJoined = true;
-            }
-            IEnumerable<string> equipped = wardrobe.EquippedIds();
-            PlayerStats stats = StatsCalculator.Compute(equipped, run.Upgrades.Taken, save.dogSealMask, false);
-            playerMaxHp = Mathf.CeilToInt(stats.MaxHp);
-            string[] outfitIds = new List<string>(wardrobe.EquippedIds()).ToArray();
-            combat = CombatSession.Create(modeRoot, new CombatSetup
-            {
-                Stats = stats,
-                SpiritId = spiritId,
-                DogTier = DogProgress.GetTier(save.dogSealMask),
-                Mounted = false,
-                Showcase = false,
-                Clock = clock,
-                EquippedOutfitIds = outfitIds
-            });
-            hasPlayerVitals = false;
-            combat.FloorCleared += OnFloorCleared;
-            combat.PlayerDied += OnPlayerDied;
-            combat.BossHealthChanged += OnBossHealthChanged;
-            combat.BossDefeatedAt += ShowCage;
-            AttachDayNightView();
-            combat.StartFloor(Catalog.GetFloor(run.CurrentFloor));
-            combat.Running = true;
-            DrawHud();
-            if (run.CurrentFloor == 1 && !save.tutorialSeen && !tutorialDisplayed)
-            {
-                Toast("Kéo nửa dưới màn hình để di chuyển — phép tự bắn");
-                tutorialDisplayed = true;
-            }
-            if (spiritJoined)
-            {
-                Toast(Loc.F("Tinh linh {0} (mượn) đã đi cùng bạn!", SpiritName(spiritId)));
-                Toast("Chạm nút tinh linh góc phải để ra lệnh");
-            }
-            if (run.CurrentFloor == 3)
-            {
-                Toast("Để ý vùng đỏ — tránh ra!");
-            }
-        }
+
         void ShowCage(Vector3 position)
         {
+            if (combat == null) return;
             GameObject cage = CharacterFactory.CreateCage(combat.transform);
             cage.transform.position = position;
         }
+
         void AttachDayNightView()
         {
-            var view = modeRoot.gameObject.AddComponent<DayNightView>();
+            var view = modeRoot.GetComponent<DayNightView>();
+            if (view == null) view = modeRoot.gameObject.AddComponent<DayNightView>();
             view.Clock = clock;
             Camera target = FindAnyObjectByType<Camera>();
             view.TargetCamera = target;
             view.MainLight = FindAnyObjectByType<Light>();
         }
+
         void DrawHud()
         {
             Clear();
             DrawJoystickArea();
-            DrawTopHud("PlayerHealth", run.CurrentFloor == Catalog.FloorCount);
-            DrawCommandControls();
+            DrawTopHud("PlayerHealth", FloorPlan.Kind(run.CurrentFloor) != FloorKind.Normal);
             UpdateHudBars();
         }
 
@@ -190,7 +188,6 @@ namespace RHMG.Runtime
             return text;
         }
 
-
         void OnBossHealthChanged(float value)
         {
             if (bossFill != null)
@@ -199,41 +196,18 @@ namespace RHMG.Runtime
             }
         }
 
-        void OnFloorCleared()
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            debugAutoWin = false;
-#endif
-            try
-            {
-                int floor = run.CurrentFloor;
-                int floorReward = run.CompleteFloor();
-                Log("floor_clear", floor + ":" + floorReward);
-                SaveNow();
-                if (floor < 5)
-                {
-                    ShowUpgrade();
-                }
-                else
-                {
-                    Log("run_complete", run.RunId);
-                    ShowRescue();
-                }
-                // After the screen change: SetMode clears pending toasts.
-                Toast(Loc.F("+{0} vàng", floorReward));
-            }
-            catch (InvalidOperationException exception)
-            {
-                Debug.LogException(exception);
-            }
-        }
-
         void OnPlayerDied()
         {
+            audioHub.Play("defeat");
             try
             {
+                if (run.Phase != RunPhase.Combat && run.Phase != RunPhase.LevelUp && run.Phase != RunPhase.Station)
+                {
+                    return;
+                }
                 run.PlayerDied();
                 Log("player_death", run.CurrentFloor.ToString());
+                SaveNow();
                 DrawDeathResult();
             }
             catch (InvalidOperationException exception)

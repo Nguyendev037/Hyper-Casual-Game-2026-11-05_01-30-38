@@ -102,7 +102,7 @@ namespace RHMG.Core
             try
             {
                 SaveData parsed = _serializer.Deserialize(_fs.ReadAllText(path));
-                if (parsed == null || parsed.schemaVersion != SaveData.CurrentSchemaVersion)
+                if (parsed == null || parsed.schemaVersion < 1 || parsed.schemaVersion > SaveData.CurrentSchemaVersion)
                 {
                     return false;
                 }

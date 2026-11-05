@@ -4,6 +4,16 @@ namespace RHMG.Runtime.Combat
 {
     public static class CombatMath
     {
+        /// <summary>Half extents of the walkable area; CombatSession sets them for the combat or station arena.</summary>
+        public static float LimitX = CombatTuning.ArenaLimitX;
+        public static float LimitZ = CombatTuning.ArenaLimitZ;
+
+        public static void SetLimits(float x, float z)
+        {
+            LimitX = x;
+            LimitZ = z;
+        }
+
         public static bool Overlap(Vector3 a, float radiusA, Vector3 b, float radiusB)
         {
             float dx = a.x - b.x;
@@ -14,8 +24,8 @@ namespace RHMG.Runtime.Combat
 
         public static Vector3 ClampArena(Vector3 position)
         {
-            position.x = Mathf.Clamp(position.x, -CombatTuning.ArenaLimitX, CombatTuning.ArenaLimitX);
-            position.z = Mathf.Clamp(position.z, -CombatTuning.ArenaLimitZ, CombatTuning.ArenaLimitZ);
+            position.x = Mathf.Clamp(position.x, -LimitX, LimitX);
+            position.z = Mathf.Clamp(position.z, -LimitZ, LimitZ);
             position.y = 0f;
             return position;
         }

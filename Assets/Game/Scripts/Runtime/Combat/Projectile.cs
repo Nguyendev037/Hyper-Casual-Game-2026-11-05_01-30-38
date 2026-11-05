@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using RHMG.Runtime.Visuals;
 
@@ -28,6 +29,9 @@ namespace RHMG.Runtime.Combat
         private float impactSlow;
         private float impactBurn;
         private float impactDuration;
+        private int pierceLeft;
+        private float healOnHit;
+        private readonly List<EnemyController> hitList = new List<EnemyController>(4);
 
         public void Init(CombatWorld ownerWorld, Action<Projectile> releaseAction)
         {
@@ -51,6 +55,9 @@ namespace RHMG.Runtime.Combat
             impactSlow = 0f;
             impactBurn = 0f;
             impactDuration = 0f;
+            pierceLeft = 0;
+            healOnHit = 0f;
+            hitList.Clear();
             Renderer renderer = GetComponentInChildren<Renderer>();
             if (renderer != null && color.HasValue)
             {
@@ -66,6 +73,22 @@ namespace RHMG.Runtime.Combat
             impactSlow = slow;
             impactBurn = burnDps;
             impactDuration = duration;
+        }
+
+        /// <summary>Flies exactly to the end of the range: lifetime = range / speed + 0.1 s (SPEC-P01 §2).</summary>
+        public void SetRange(float range)
+        {
+            Life = range / Mathf.Max(0.1f, Speed) + 0.1f;
+        }
+
+        public void SetPierce(int extraTargets)
+        {
+            pierceLeft = Mathf.Max(0, extraTargets);
+        }
+
+        public void SetHeal(float amount)
+        {
+            healOnHit = Mathf.Max(0f, amount);
         }
 
         public void Step(float deltaTime)
@@ -89,22 +112,28 @@ namespace RHMG.Runtime.Combat
                 for (int i = 0; i < world.Enemies.Count; i++)
                 {
                     EnemyController enemy = world.Enemies[i];
-                    if (enemy != null && enemy.Alive &&
+                    if (enemy != null && enemy.Targetable && !hitList.Contains(enemy) &&
                         CombatMath.Overlap(transform.position, Radius, enemy.transform.position, enemy.Radius))
                     {
-                        ResolveEnemyImpact(enemy);
-                        release?.Invoke(this);
-                        return;
+                        if (HitAndCheckEnd(enemy))
+                        {
+                            release?.Invoke(this);
+                            return;
+                        }
+
+                        break;
                     }
                 }
 
                 EnemyController dummy = world.DummyTarget;
-                if (dummy != null && dummy.Alive &&
+                if (dummy != null && dummy.Alive && !hitList.Contains(dummy) &&
                     CombatMath.Overlap(transform.position, Radius, dummy.transform.position, dummy.Radius))
                 {
-                    ResolveEnemyImpact(dummy);
-                    release?.Invoke(this);
-                    return;
+                    if (HitAndCheckEnd(dummy))
+                    {
+                        release?.Invoke(this);
+                        return;
+                    }
                 }
             }
             else if (CombatMath.Overlap(transform.position, Radius, world.Player.transform.position,
@@ -115,38 +144,65 @@ namespace RHMG.Runtime.Combat
                 return;
             }
 
-            if (Mathf.Abs(transform.position.x) > 7f || Mathf.Abs(transform.position.z) > 9f)
+            if (Mathf.Abs(transform.position.x) > CombatMath.LimitX + 2f ||
+                Mathf.Abs(transform.position.z) > CombatMath.LimitZ + 2f)
             {
                 release?.Invoke(this);
             }
         }
 
+        // True when the projectile is spent after this hit.
+        private bool HitAndCheckEnd(EnemyController enemy)
+        {
+            hitList.Add(enemy);
+            ResolveEnemyImpact(enemy);
+            Target = null;
+            if (pierceLeft > 0)
+            {
+                pierceLeft--;
+                return false;
+            }
+
+            return true;
+        }
+
         private void ResolveEnemyImpact(EnemyController target)
         {
+            bool hit = false;
             if (splashRadius <= 0f)
             {
                 target.TakeDamage(Damage, transform.position);
                 target.ApplyEffects(impactSlow, impactBurn, impactDuration);
-                return;
+                hit = true;
             }
-
-            for (int i = world.Enemies.Count - 1; i >= 0; i--)
+            else
             {
-                EnemyController enemy = world.Enemies[i];
-                if (enemy != null && CombatMath.Overlap(enemy.transform.position, enemy.Radius,
-                    target.transform.position, splashRadius))
+                Vector3 center = target.transform.position;
+                for (int i = world.Enemies.Count - 1; i >= 0; i--)
                 {
-                    enemy.TakeDamage(Damage, transform.position);
-                    enemy.ApplyEffects(impactSlow, impactBurn, impactDuration);
+                    EnemyController enemy = world.Enemies[i];
+                    if (enemy != null && enemy.Alive && CombatMath.Overlap(enemy.transform.position, enemy.Radius,
+                        center, splashRadius))
+                    {
+                        enemy.TakeDamage(Damage, transform.position);
+                        enemy.ApplyEffects(impactSlow, impactBurn, impactDuration);
+                        hit = true;
+                    }
+                }
+
+                EnemyController dummy = world.DummyTarget;
+                if (dummy != null && dummy.Alive &&
+                    CombatMath.Overlap(dummy.transform.position, dummy.Radius, center, splashRadius))
+                {
+                    dummy.TakeDamage(Damage, transform.position);
+                    dummy.ApplyEffects(impactSlow, impactBurn, impactDuration);
+                    hit = true;
                 }
             }
 
-            EnemyController dummy = world.DummyTarget;
-            if (dummy != null && dummy.Alive &&
-                CombatMath.Overlap(dummy.transform.position, dummy.Radius, target.transform.position, splashRadius))
+            if (hit && healOnHit > 0f && world.Player != null)
             {
-                dummy.TakeDamage(Damage, transform.position);
-                dummy.ApplyEffects(impactSlow, impactBurn, impactDuration);
+                world.Player.Health.Heal(healOnHit);
             }
         }
 
@@ -154,6 +210,9 @@ namespace RHMG.Runtime.Combat
         {
             Target = null;
             splashRadius = 0f;
+            pierceLeft = 0;
+            healOnHit = 0f;
+            hitList.Clear();
             gameObject.SetActive(false);
         }
     }

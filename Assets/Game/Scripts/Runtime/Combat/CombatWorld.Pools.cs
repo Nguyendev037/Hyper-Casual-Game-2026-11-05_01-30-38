@@ -33,12 +33,12 @@ namespace RHMG.Runtime.Combat
             return projectile;
         }
 
-        private EnemyController CreateEnemy(EnemyKind kind)
+        private EnemyController CreateEnemy(EnemyKind kind, int poolIndex)
         {
             GameObject root = new GameObject("PooledEnemy");
             root.transform.SetParent(transform, false);
             EnemyController enemy = root.AddComponent<EnemyController>();
-            enemy.Init(this, ReleaseEnemy, kind);
+            enemy.Init(this, ReleaseEnemy, kind, poolIndex);
             root.SetActive(false);
             return enemy;
         }
@@ -52,7 +52,7 @@ namespace RHMG.Runtime.Combat
                 warning.SetActive(false);
                 return warning.GetComponent<TelegraphView>();
             }, view => view.gameObject.SetActive(true), view => view.gameObject.SetActive(false),
-                view => Destroy(view.gameObject), false, capacity, capacity);
+                view => Destroy(view.gameObject), false, capacity, capacity * 2);
             return pool;
         }
 
@@ -66,7 +66,7 @@ namespace RHMG.Runtime.Combat
 
         private void PrewarmPools()
         {
-            Projectile[] shotItems = new Projectile[40];
+            Projectile[] shotItems = new Projectile[60];
             for (int i = 0; i < shotItems.Length; i++)
             {
                 shotItems[i] = projectilePool.Get();
@@ -77,7 +77,8 @@ namespace RHMG.Runtime.Combat
                 projectilePool.Release(shotItems[i]);
             }
 
-            int[] counts = { 6, 2, 3, 1 };
+            // Beetle, Eye, Sentinel, Warden, Queen, BlueHair, anchor
+            int[] counts = { 24, 8, 6, 1, 1, 1, 3 };
             for (int kind = 0; kind < enemyPools.Length; kind++)
             {
                 EnemyController[] enemyItems = new EnemyController[counts[kind]];
@@ -98,6 +99,7 @@ namespace RHMG.Runtime.Combat
             PrewarmWarnings(discWarnings, 12);
             PrewarmWarnings(fanWarnings, 12);
             PrewarmWarnings(dashWarnings, 12);
+            PrewarmWarnings(bossFanWarnings, 6);
             GameObject[] bursts = new GameObject[8];
             for (int i = 0; i < bursts.Length; i++)
             {
@@ -158,6 +160,8 @@ namespace RHMG.Runtime.Combat
         {
             ClearProjectiles();
             ClearEnemies();
+            Gems?.Dispose();
+            Storm?.Dispose();
             projectilePool?.Dispose();
             foreach (ObjectPool<EnemyController> pool in enemyPools)
             {
@@ -167,6 +171,7 @@ namespace RHMG.Runtime.Combat
             discWarnings?.Dispose();
             fanWarnings?.Dispose();
             dashWarnings?.Dispose();
+            bossFanWarnings?.Dispose();
             burstPool?.Dispose();
             if (dashMesh != null)
             {

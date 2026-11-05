@@ -3,10 +3,12 @@ using RHMG.Core;
 
 namespace RHMG.Runtime.Combat
 {
+    /// <summary>Scene-less combat test bench: walks a fixed path and plays the first floors of the survival loop.</summary>
     public sealed class CombatSandbox : MonoBehaviour
     {
         public bool AutoRunOnStart;
         public CombatSetup Setup;
+        public int LastFloor = 5;
 
         private CombatSession session;
         private int floor;
@@ -34,7 +36,7 @@ namespace RHMG.Runtime.Combat
                 Setup.Stats = StatsCalculator.Compute(null, null, 0, false);
             }
 
-            if (Setup.SpiritId == null)
+            if (Setup.SpiritId == null && Setup.Spirits == null)
             {
                 Setup.SpiritId = "spirit.dew";
             }
@@ -42,6 +44,7 @@ namespace RHMG.Runtime.Combat
             session = CombatSession.Create(transform, Setup);
             session.FloorCleared += NextFloor;
             session.PlayerDied += HandlePlayerDied;
+            session.XpCollected += _ => { };
             floor = 0;
             runElapsed = 0f;
             BeginFloor();
@@ -59,33 +62,20 @@ namespace RHMG.Runtime.Combat
             float time = runElapsed;
             Vector2 movement = new Vector2(Mathf.Sin(time * 0.83f), Mathf.Cos(time * 0.61f));
             session.SetMoveInput(movement.normalized);
-            if (session.CommandCooldown01 <= 0f)
-            {
-                session.TryCommand();
-            }
         }
 
         private void BeginFloor()
         {
             floor++;
-            if (floor > 5)
+            if (floor > LastFloor)
             {
                 Debug.Log("[CombatSandbox] all floors cleared");
                 session.Running = false;
                 return;
             }
 
-            FloorDefinition definition = Catalog.GetFloor(floor);
-            if (definition == null)
-            {
-                Debug.LogError("[CombatSandbox] Catalog.GetFloor(" + floor + ") returned null");
-                session.Running = false;
-                stopped = true;
-                return;
-            }
-
             floorElapsed = 0f;
-            session.StartFloor(definition);
+            session.StartFloor(floor);
             session.Running = true;
         }
 

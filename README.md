@@ -2,6 +2,12 @@
 
 Mobile action game for Android, built with Unity 6 (URP, C#).
 
+## Play the demo
+
+[Download the Android demo APK (v0.4.0, 57 MB)](https://media.githubusercontent.com/media/Nguyendev037/Hyper-Casual-Game-2026-11-05_01-30-38/main/Builds/Android/RedHairMagicGirl_demo_v0.4.0.apk)
+
+Install on an Android ARM64 device or an ARM64-compatible emulator. This is a demo for playtesting.
+
 ## Requirements
 - **Unity 6000.6.8f1** (install via Unity Hub; add *Android Build Support* only if you want to build an APK).
 - **Git LFS** — images and fonts are stored with LFS. Install it once: `git lfs install`.

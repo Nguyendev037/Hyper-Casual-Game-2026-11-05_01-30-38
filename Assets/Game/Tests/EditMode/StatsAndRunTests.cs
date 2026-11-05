@@ -18,7 +18,7 @@ namespace RHMG.Core.Tests
             Assert.AreEqual(4f, s.MoveSpeed, 1e-4f);
             Assert.AreEqual(10f, s.StaffDamage, 1e-4f);
             Assert.AreEqual(0.65f, s.AttackInterval, 1e-4f);
-            Assert.AreEqual(6f, s.Range, 1e-4f);
+            Assert.AreEqual(9f, s.Range, 1e-4f);
             Assert.AreEqual(6f, s.DogDamage, 1e-4f);
             Assert.AreEqual(1.2f, s.DogInterval, 1e-4f);
             Assert.AreEqual(12f, s.CommandCooldown, 1e-4f);
@@ -54,13 +54,14 @@ namespace RHMG.Core.Tests
         [Test]
         public void Stats_UpgradeStacksAddAndCapAtMaxStacks()
         {
+            // Plan 04: +12% per stack, max 5 stacks (SPEC-P01 5).
             string[] twice = { "upgrade.staff_dmg", "upgrade.staff_dmg" };
             PlayerStats two = StatsCalculator.Compute(new string[0], twice, 0, false);
-            Assert.AreEqual(13f, two.StaffDamage, 1e-4f);
+            Assert.AreEqual(12.4f, two.StaffDamage, 1e-4f);
 
-            string[] thrice = { "upgrade.staff_dmg", "upgrade.staff_dmg", "upgrade.staff_dmg" };
-            PlayerStats three = StatsCalculator.Compute(new string[0], thrice, 0, false);
-            Assert.AreEqual(13f, three.StaffDamage, 1e-4f);
+            string[] six = { "upgrade.staff_dmg", "upgrade.staff_dmg", "upgrade.staff_dmg", "upgrade.staff_dmg", "upgrade.staff_dmg", "upgrade.staff_dmg" };
+            PlayerStats capped = StatsCalculator.Compute(new string[0], six, 0, false);
+            Assert.AreEqual(16f, capped.StaffDamage, 1e-4f);
         }
 
         [Test]
@@ -69,7 +70,7 @@ namespace RHMG.Core.Tests
             string[] ups = { "upgrade.max_hp", "upgrade.atk_speed", "upgrade.dog_dmg" };
             PlayerStats s = StatsCalculator.Compute(new string[0], ups, 0x03, false);
             Assert.AreEqual(115f, s.MaxHp, 1e-4f);
-            Assert.AreEqual(0.585f, s.AttackInterval, 1e-4f);
+            Assert.AreEqual(0.598f, s.AttackInterval, 1e-4f);
             Assert.AreEqual(6f * 1.2f * 1.10f, s.DogDamage, 1e-4f);
         }
 
@@ -81,12 +82,26 @@ namespace RHMG.Core.Tests
                 "upgrade.atk_speed", "upgrade.atk_speed", "upgrade.cmd_cd", "upgrade.cmd_cd"
             };
             PlayerStats s = StatsCalculator.Compute(new string[0], ups, 0, false);
-            Assert.AreEqual(0.52f, s.AttackInterval, 1e-4f);
-            Assert.AreEqual(8.4f, s.CommandCooldown, 1e-4f);
+            Assert.AreEqual(0.546f, s.AttackInterval, 1e-4f);
+            Assert.AreEqual(10.08f, s.CommandCooldown, 1e-4f);
             Assert.GreaterOrEqual(s.AttackInterval, 0.25f);
             Assert.GreaterOrEqual(s.CommandCooldown, 4f);
         }
 
+        private static void ClearFloorsAndLeaveStations(RunController run, int lastFloor)
+        {
+            for (int floor = run.CurrentFloor; floor <= lastFloor; floor++)
+            {
+                run.CompleteFloor();
+                if (run.Phase == RunPhase.Station)
+                {
+                    run.ClaimStationReward();
+                    run.LeaveStation();
+                }
+            }
+        }
+
+        // Plan 04: 100 floors, a station after every 5th floor (replaces the 5-floor/Upgrade flow).
         [Test]
         public void Run_FullValidFlowReachesRest()
         {
@@ -95,21 +110,16 @@ namespace RHMG.Core.Tests
             run.Start();
             Assert.AreEqual("run1-42", run.RunId);
             Assert.AreEqual(RunPhase.Combat, run.Phase);
-            for (int floor = 1; floor <= 4; floor++)
-            {
-                Assert.AreEqual(floor, run.CurrentFloor);
-                run.CompleteFloor();
-                Assert.AreEqual(RunPhase.Upgrade, run.Phase);
-                run.ChooseUpgrade(run.Upgrades.RollChoices()[0]);
-            }
-
-            Assert.AreEqual(5, run.CurrentFloor);
+            ClearFloorsAndLeaveStations(run, 99);
+            Assert.AreEqual(100, run.CurrentFloor);
             Assert.AreEqual(40, run.CompleteFloor());
             Assert.AreEqual(RunPhase.Rescue, run.Phase);
             run.CompleteRescue();
             Assert.AreEqual(RunPhase.Rest, run.Phase);
-            Assert.AreEqual(4 * 15 + 40, run.GoldEarnedThisRun);
+            // 99 x 15 first-clear + 19 guardian/boss floors x 25 + 16 gold stations (20..95) x 25 + floor 100 (10+5+25)
+            Assert.AreEqual(99 * 15 + 19 * 25 + 16 * 25 + 40, run.GoldEarnedThisRun);
             Assert.AreEqual(data.gold, run.GoldEarnedThisRun);
+            Assert.IsFalse(data.runCheckpoint.valid);
         }
 
         [Test]
@@ -120,7 +130,8 @@ namespace RHMG.Core.Tests
             Assert.Throws<InvalidOperationException>(() => run.CompleteFloor());
             run.Start();
             Assert.Throws<InvalidOperationException>(() => run.Start());
-            Assert.Throws<InvalidOperationException>(() => run.ChooseUpgrade("upgrade.max_hp"));
+            Assert.Throws<InvalidOperationException>(() => run.OpenLevelUp());
+            Assert.Throws<InvalidOperationException>(() => run.LeaveStation());
             Assert.Throws<InvalidOperationException>(() => run.CompleteRescue());
         }
 
@@ -131,7 +142,6 @@ namespace RHMG.Core.Tests
             RunController run = new RunController(data, new RewardService(data), 9);
             run.Start();
             run.CompleteFloor();
-            run.ChooseUpgrade("upgrade.max_hp");
             run.PlayerDied();
             Assert.AreEqual(RunPhase.Defeat, run.Phase);
             Assert.AreEqual(15, data.gold);
@@ -140,15 +150,17 @@ namespace RHMG.Core.Tests
         }
 
         [Test]
-        public void Run_InvalidUpgradeIdDoesNotAdvanceFloor()
+        public void Run_InvalidCardDoesNotAdvance()
         {
             SaveData data = SaveData.CreateDefault();
             RunController run = new RunController(data, new RewardService(data), 3);
             run.Start();
-            run.CompleteFloor();
-            Assert.Throws<ArgumentException>(() => run.ChooseUpgrade("upgrade.bogus"));
-            Assert.AreEqual(RunPhase.Upgrade, run.Phase);
-            Assert.AreEqual(1, run.CurrentFloor);
+            run.Progress.AddXp(7, 1f);
+            run.OpenLevelUp();
+            LevelUpCard bogus = new LevelUpCard { Id = "upgrade.bogus", Kind = CardKind.Stat, TargetId = "upgrade.bogus" };
+            Assert.Throws<ArgumentException>(() => run.ChooseCard(bogus));
+            Assert.AreEqual(RunPhase.LevelUp, run.Phase);
+            Assert.AreEqual(1, run.Progress.PendingLevelUps);
         }
 
         [Test]
@@ -173,9 +185,13 @@ namespace RHMG.Core.Tests
             System.Collections.Generic.List<RunPhase> seen = new System.Collections.Generic.List<RunPhase>();
             run.PhaseChanged += p => seen.Add(p);
             run.Start();
-            run.CompleteFloor();
+            for (int i = 0; i < 5; i++)
+            {
+                run.CompleteFloor();
+            }
+
             run.PlayerDied();
-            CollectionAssert.AreEqual(new[] { RunPhase.Combat, RunPhase.Upgrade, RunPhase.Defeat }, seen);
+            CollectionAssert.AreEqual(new[] { RunPhase.Combat, RunPhase.Station, RunPhase.Defeat }, seen);
         }
     }
 }

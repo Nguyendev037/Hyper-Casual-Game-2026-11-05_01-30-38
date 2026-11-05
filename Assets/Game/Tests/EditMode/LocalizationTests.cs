@@ -45,7 +45,16 @@ namespace RHMG.Core.Tests
             UpgradeDefinition heal = Catalog.GetUpgrade(Catalog.HealFallbackId);
             Check(heal.Title, missing);
             Check(heal.Description, missing);
-            Check(Catalog.GetSpirit("spirit.steam").DisplayName, missing);
+            foreach (SpiritDefinition spirit in Catalog.Spirits)
+            {
+                if (spirit.IsFusion) Check(spirit.DisplayName, missing);
+                Check(spirit.AutoText, missing);
+                Check(spirit.CommandText, missing);
+            }
+            foreach (EnemyDefinition enemy in Catalog.Enemies)
+            {
+                Check(enemy.DisplayName, missing);
+            }
             for (int floor = 1; floor <= Catalog.FloorCount; floor++)
             {
                 Check(Catalog.GetFloor(floor).LearnHint, missing);

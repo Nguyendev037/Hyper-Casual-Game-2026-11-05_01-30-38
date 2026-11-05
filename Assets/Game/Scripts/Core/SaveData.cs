@@ -26,9 +26,31 @@ namespace RHMG.Core
     }
 
     [Serializable]
+    public sealed class RunSpiritEntry
+    {
+        public string spiritId;
+        public int level;
+    }
+
+    /// <summary>Station checkpoint (01-CONTRACTS §2). Defeat keeps it; finishing floor 100 clears it.</summary>
+    [Serializable]
+    public sealed class RunCheckpoint
+    {
+        public bool valid;
+        public string runId;
+        public int seed;
+        public int floor;
+        public int level;
+        public int xp;
+        public float hp;
+        public List<string> takenCards;
+        public List<RunSpiritEntry> spirits;
+    }
+
+    [Serializable]
     public sealed partial class SaveData
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public int schemaVersion = CurrentSchemaVersion;
         public int highestClearedFloor;
@@ -48,6 +70,10 @@ namespace RHMG.Core
         public bool vibrationOn;
         /// <summary>UI language code: "en" (default) | "vi" | "ko". SPEC-P04.</summary>
         public string language = "en";
+        /// <summary>Schema v2. null or valid=false = no unfinished run.</summary>
+        public RunCheckpoint runCheckpoint;
+        /// <summary>Schema v2 statistic.</summary>
+        public int highestLevelReached;
 
         public static SaveData CreateDefault()
         {
@@ -59,6 +85,7 @@ namespace RHMG.Core
         /// <summary>Repairs the data in place. Never throws.</summary>
         public void Normalize()
         {
+            MigrateSchema();
             if (!Loc.IsKnownCode(language))
             {
                 language = "en";
@@ -89,6 +116,87 @@ namespace RHMG.Core
             NormalizeBonds();
             NormalizeFusions();
             NormalizeClaimedFloors();
+            NormalizeCheckpoint();
+        }
+
+        /// <summary>v1 -> v2 only adds fields (their defaults are already in place); activeFusions is kept untouched.</summary>
+        private void MigrateSchema()
+        {
+            if (schemaVersion >= 1 && schemaVersion < CurrentSchemaVersion)
+            {
+                schemaVersion = CurrentSchemaVersion;
+            }
+
+            if (highestLevelReached < 0)
+            {
+                highestLevelReached = 0;
+            }
+        }
+
+        private void NormalizeCheckpoint()
+        {
+            RunCheckpoint cp = runCheckpoint;
+            if (cp == null)
+            {
+                return;
+            }
+
+            if (cp.takenCards == null)
+            {
+                cp.takenCards = new List<string>();
+            }
+
+            if (cp.spirits == null)
+            {
+                cp.spirits = new List<RunSpiritEntry>();
+            }
+
+            if (cp.valid && !IsCheckpointStructurallyValid(cp))
+            {
+                cp.valid = false;
+            }
+        }
+
+        /// <summary>Finite nonnegative HP, level 1..XpCurve.MaxLevel, residual XP below Required(level), known spirits/cards within limits.</summary>
+        public static bool IsCheckpointStructurallyValid(RunCheckpoint cp)
+        {
+            if (cp == null || string.IsNullOrEmpty(cp.runId) || cp.floor < 1 || cp.floor > SurvivorTuning.FloorCount
+                || cp.level < 1 || cp.level > XpCurve.MaxLevel || cp.xp < 0
+                || cp.xp >= XpCurve.Required(cp.level) || float.IsNaN(cp.hp) || float.IsInfinity(cp.hp) || cp.hp < 0f)
+            {
+                return false;
+            }
+
+            if (cp.spirits == null || cp.takenCards == null)
+            {
+                return false;
+            }
+
+            if (!new RunSpirits().Restore(cp.spirits))
+            {
+                return false;
+            }
+
+            Dictionary<string, int> stacks = new Dictionary<string, int>();
+            for (int i = 0; i < cp.takenCards.Count; i++)
+            {
+                UpgradeDefinition def = Catalog.GetUpgrade(cp.takenCards[i]);
+                if (def == null || def.MaxStacks <= 0)
+                {
+                    return false;
+                }
+
+                int n;
+                stacks.TryGetValue(def.Id, out n);
+                if (n + 1 > def.MaxStacks)
+                {
+                    return false;
+                }
+
+                stacks[def.Id] = n + 1;
+            }
+
+            return true;
         }
 
         public SaveData DeepClone()
@@ -111,6 +219,8 @@ namespace RHMG.Core
             copy.bondLevels = CloneBonds();
             copy.equippedOutfits = CloneEquips();
             copy.activeFusions = CloneFusions();
+            copy.highestLevelReached = highestLevelReached;
+            copy.runCheckpoint = CloneCheckpoint();
             return copy;
         }
 

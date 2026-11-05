@@ -24,7 +24,7 @@ namespace RHMG.Runtime
             toastPanel.SetAsLastSibling();
             // Toast goes in each screen's free band: Rest (grid above, wardrobe rows 0.55/0.46) → 0.505;
             // Upgrade (cards 0.19–0.73) → bottom; tower HUD → 0.70.
-            float y = mode == Mode.Rest ? 0.505f : mode == Mode.Upgrade ? 0.08f : 0.70f;
+            float y = mode == Mode.Rest ? 0.505f : mode == Mode.LevelUp ? 0.08f : 0.70f;
             toastPanel.anchorMin = new Vector2(0.5f, y);
             toastPanel.anchorMax = new Vector2(0.5f, y);
             toastPanel.gameObject.SetActive(true);

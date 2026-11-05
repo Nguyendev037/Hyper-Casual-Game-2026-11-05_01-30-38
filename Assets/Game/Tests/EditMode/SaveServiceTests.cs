@@ -111,7 +111,7 @@ namespace RHMG.Core.Tests
 
             SaveData loaded;
             Assert.AreEqual(LoadOutcome.ResetCorrupt, _svc.Load(out loaded));
-            Assert.AreEqual(1, loaded.schemaVersion);
+            Assert.AreEqual(SaveData.CurrentSchemaVersion, loaded.schemaVersion);
         }
 
         [Test]

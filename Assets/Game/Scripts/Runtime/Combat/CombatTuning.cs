@@ -1,19 +1,29 @@
 namespace RHMG.Runtime.Combat
 {
+    /// <summary>Presentation/geometry constants of the combat runtime. Balance numbers live in RHMG.Core (B1).</summary>
     public static class CombatTuning
     {
-        public const float ArenaWidth = 12f;
-        public const float ArenaDepth = 20f; // plan02: deeper so the arena fills a portrait screen
-        public const float ArenaLimitX = 5.6f;
-        public const float ArenaLimitZ = 9.6f;
-        public const float CameraViewWidth = 13f;
+        // SPEC-P01 §2: combat arena 36 x 56 m, camera follows the girl; station arena 14 x 14 m (SPEC-P02 §4).
+        public const float ArenaWidth = 36f;
+        public const float ArenaDepth = 56f;
+        public const float ArenaLimitX = 17.6f;
+        public const float ArenaLimitZ = 27.6f;
+        public const float StationSize = 14f;
+        public const float StationLimit = 6.6f;
+        public const float CameraViewWidth = 15f;
         public const float CameraHeight = 12f;
         public const float CameraMinSize = 7.5f;
-        public const float CameraFollowLimitZ = 1.5f;
-        /// <summary>Ground depth the camera must show: arena + bottom margin + strip hidden by the top HUD.</summary>
-        public const float CameraVisibleDepth = ArenaDepth + 4f;
-        /// <summary>Ground point at screen centre is shifted up so the arena top sits just under the HUD.</summary>
-        public const float CameraCenterZ = 1f;
+        public const float CameraFollowRate = 8f;
+        public const float SpawnMinDistance = 11f;
+        public const float SpawnMaxDistance = 14f;
+        public const int SpawnTries = 8;
+        public const float FloorEndCollectSeconds = 0.6f;
+        public const float GemPickupRadius = 0.5f;
+        public const float EliteScale = 1.4f;
+        public const float EliteHpMult = 6f;
+        public const float SpiritOrbitRadius = 0.9f;
+        public const float SpiritOrbitHeight = 1.4f;
+        public const float SpiritCastGap = 1.5f;
         public const float PlayerRadius = 0.45f;
         public const float PlayerInvulnerability = 0.6f;
         public const float BeetleContactInterval = 0.8f;
@@ -37,6 +47,8 @@ namespace RHMG.Runtime.Combat
         public const float SpiritProjectileSpeed = 8f;
         public const float ProjectileRadius = 0.15f;
         public const float ProjectileVisualRadius = 0.14f;
+        public const float MultishotSpreadDegrees = 12f;
+        public const int MaxProjectiles = 160;
         public const float AutoEffectDuration = 1.5f;
         public const float CommandEffectDuration = 1.5f;
         public const float WardenFanRadius = 6f;
@@ -47,7 +59,15 @@ namespace RHMG.Runtime.Combat
         public const float SentinelTelegraphWidth = 1.1f;
         public const float SpawnSafetyRadius = 3.5f;
         public const float SentinelTelegraphMinimum = 0.7f;
-        public const float SpawnEdgeX = 5f;
-        public const float SpawnEdgeZ = 9f;
+
+        // Boss presentation (damage numbers are in Core: Catalog.QueenAttacks / BlueHairAttacks).
+        public const float BossFanAngle = 90f;
+        public const float BossFanRadius = 6f;
+        public const float BossBulletSpeed = 6.5f;
+        public const float BossStopDistance = 3.5f;
+
+        // Station (SPEC-P02 §4)
+        public const float StationActivateSeconds = 1f;
+        public const float StationTileRadius = 1.3f;
     }
 }

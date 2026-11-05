@@ -51,6 +51,8 @@ namespace RHMG.Runtime.Visuals
                 case EnemyKind.SandEye: return Load("enemy_eye");
                 case EnemyKind.Sentinel: return Load("enemy_sentinel");
                 case EnemyKind.CageWarden: return Load("enemy_warden");
+                case EnemyKind.SandQueen: return Load("boss_queen");
+                case EnemyKind.BlueHairGuy: return Load("boss_blue_hair");
                 default: return Load("enemy_beetle");
             }
         }
@@ -59,9 +61,18 @@ namespace RHMG.Runtime.Visuals
         {
             if (string.IsNullOrEmpty(spiritId)) return null;
             string key = spiritId.Replace('.', '_');
-            if (key != "spirit_dew" && key != "spirit_ember" && key != "spirit_steam") return null;
+            if (key != "spirit_dew" && key != "spirit_ember" && key != "spirit_steam" && key != "spirit_bud" &&
+                key != "spirit_growth" && key != "spirit_wildfire") return null;
             return Load(key);
         }
+
+        /// <summary>Corrupted anchor of the Blue Hair Guy fight (SPEC-P03 §2b). Image boss_anchor, else a dark crystal.</summary>
+        public static Sprite Anchor()
+        {
+            return Load("boss_anchor");
+        }
+
+        public const float AnchorHeight = 2.2f;
 
         public static float DogHeight(DogTier tier)
         {
@@ -81,6 +92,8 @@ namespace RHMG.Runtime.Visuals
                 case EnemyKind.SandEye: return 1.7f;
                 case EnemyKind.Sentinel: return 2.7f;
                 case EnemyKind.CageWarden: return 4.8f;
+                case EnemyKind.SandQueen: return 6.0f;
+                case EnemyKind.BlueHairGuy: return 3.6f;
                 default: return 1.5f;
             }
         }
@@ -124,6 +137,12 @@ namespace RHMG.Runtime.Visuals
                 }
             }
             return allowed[0];
+        }
+
+        /// <summary>Non-character props in Resources/RHMG/Sprites (gem_*, tile_*); null when missing (caller falls back).</summary>
+        public static Sprite Prop(string id)
+        {
+            return Load(id);
         }
 
         private static Sprite Load(string id)

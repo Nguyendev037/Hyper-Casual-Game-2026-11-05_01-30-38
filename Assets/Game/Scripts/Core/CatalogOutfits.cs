@@ -92,22 +92,30 @@ namespace RHMG.Core
             };
         }
 
+        private static UpgradeDefinition Up(string id, StatKind? stat, float percent, float flatHp, int max, string title, string desc)
+        {
+            return new UpgradeDefinition(id, stat, percent, flatHp, max, title, desc);
+        }
+
+        // SPEC-P01 §5. Order = Catalog order used by the roll.
         private static IReadOnlyList<UpgradeDefinition> BuildUpgradePool()
         {
             return new UpgradeDefinition[]
             {
-                new UpgradeDefinition("upgrade.staff_dmg", StatKind.StaffDamage, 0.15f, 0f, 2,
-                    "Gậy mạnh hơn", "Sát thương gậy +15%"),
-                new UpgradeDefinition("upgrade.atk_speed", StatKind.AttackInterval, -0.10f, 0f, 2,
-                    "Bắn nhanh hơn", "Tốc độ bắn nhanh hơn 10%"),
-                new UpgradeDefinition("upgrade.max_hp", null, 0f, 15f, 2,
-                    "Thêm máu", "Máu tối đa +15 và hồi tương ứng"),
-                new UpgradeDefinition("upgrade.move_speed", StatKind.MoveSpeed, 0.08f, 0f, 2,
-                    "Chân nhanh", "Di chuyển nhanh hơn 8%"),
-                new UpgradeDefinition("upgrade.dog_dmg", StatKind.DogDamage, 0.20f, 0f, 2,
-                    "Cún dữ hơn", "Sát thương của cún +20%"),
-                new UpgradeDefinition("upgrade.cmd_cd", StatKind.CommandCooldown, -0.15f, 0f, 2,
-                    "Lệnh nhanh hơn", "Hồi chiêu lệnh giảm 15%")
+                Up("upgrade.staff_dmg", StatKind.StaffDamage, 0.12f, 0f, 5, "Gậy mạnh hơn", "Sát thương gậy +12%"),
+                Up("upgrade.atk_speed", StatKind.AttackInterval, -0.08f, 0f, 5, "Bắn nhanh hơn", "Tốc độ bắn nhanh hơn 8%"),
+                Up("upgrade.max_hp", null, 0f, 15f, 5, "Thêm máu", "Máu tối đa +15 và hồi tương ứng"),
+                Up("upgrade.move_speed", StatKind.MoveSpeed, 0.06f, 0f, 5, "Chân nhanh", "Di chuyển nhanh hơn 6%"),
+                Up("upgrade.magnet", StatKind.MagnetRadius, 0.30f, 0f, 5, "Nam châm linh thạch", "Tầm hút linh thạch +30%"),
+                Up("upgrade.range", StatKind.Range, 0.08f, 0f, 5, "Tầm xa", "Tầm bắn +8%"),
+                Up("upgrade.multishot", StatKind.ProjectileCount, 1f, 0f, 3, "Đa phát", "Bắn thêm 1 đạn"),
+                Up("upgrade.pierce", StatKind.Pierce, 1f, 0f, 3, "Xuyên thấu", "Đạn xuyên thêm 1 mục tiêu"),
+                Up("upgrade.armor", StatKind.Armor, 0.06f, 0f, 5, "Giáp cát", "Sát thương nhận vào giảm 6%"),
+                Up("upgrade.regen", StatKind.Regen, 0.4f, 0f, 5, "Hồi phục", "Hồi 0,4 máu mỗi giây"),
+                Up("upgrade.xp_gain", StatKind.XpGain, 0.08f, 0f, 3, "Học nhanh", "Linh thạch nhận được +8%"),
+                Up("upgrade.dog_dmg", StatKind.DogDamage, 0.20f, 0f, 5, "Cún dữ hơn", "Sát thương của cún +20%"),
+                Up("upgrade.spirit_power", StatKind.SpiritPower, 0.15f, 0f, 5, "Tinh linh mạnh hơn", "Sát thương tinh linh +15%"),
+                Up("upgrade.cmd_cd", StatKind.CommandCooldown, -0.08f, 0f, 5, "Hồi chiêu nhanh", "Hồi chiêu tinh linh giảm 8%")
             };
         }
     }

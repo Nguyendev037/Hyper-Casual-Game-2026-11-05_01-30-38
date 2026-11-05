@@ -126,8 +126,11 @@ namespace RHMG.Core.Tests
         public void RollChoices_RespectsMaxStacksAndFallsBackToHeal()
         {
             RunUpgrades upgrades = new RunUpgrades(new SeededRng(1));
-            upgrades.Take("upgrade.staff_dmg");
-            upgrades.Take("upgrade.staff_dmg");
+            for (int n = 0; n < Catalog.GetUpgrade("upgrade.staff_dmg").MaxStacks; n++)
+            {
+                upgrades.Take("upgrade.staff_dmg");
+            }
+
             for (int i = 0; i < 20; i++)
             {
                 CollectionAssert.DoesNotContain(upgrades.RollChoices(), "upgrade.staff_dmg");
@@ -149,12 +152,16 @@ namespace RHMG.Core.Tests
         {
             RunUpgrades upgrades = new RunUpgrades(new SeededRng(1));
             Assert.Throws<System.ArgumentException>(() => upgrades.Take("upgrade.nope"));
-            upgrades.Take("upgrade.dog_dmg");
-            upgrades.Take("upgrade.dog_dmg");
+            int max = Catalog.GetUpgrade("upgrade.dog_dmg").MaxStacks;
+            for (int n = 0; n < max; n++)
+            {
+                upgrades.Take("upgrade.dog_dmg");
+            }
+
             Assert.Throws<System.ArgumentException>(() => upgrades.Take("upgrade.dog_dmg"));
             upgrades.Take("upgrade.heal20");
             Assert.AreEqual(0, upgrades.StackCount("upgrade.heal20"));
-            Assert.AreEqual(2, upgrades.Taken.Count);
+            Assert.AreEqual(max, upgrades.Taken.Count);
         }
     }
 }

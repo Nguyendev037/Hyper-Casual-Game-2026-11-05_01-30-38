@@ -30,8 +30,16 @@ namespace RHMG.Runtime.Visuals
         private float m_LungeTimer, m_LungeDuration, m_LungeDistance;
         private float m_Phase;
         private Sprite m_Sprite;
+        private SpriteDeformer m_Deformer;
+
+        /// <summary>Mesh deformation (SPEC-P06) on by default; "-rhmgNoDeform" turns it off for A/B captures.</summary>
+        public static readonly bool DeformEnabled =
+            System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-rhmgNoDeform") < 0;
 
         public bool FacingRight => m_TargetSign > 0f;
+
+        /// <summary>Smoothed locomotion 0..1 (what the deformer animates with).</summary>
+        public float Speed01 => m_Speed;
 
         public static SpriteBillboard Create(Transform parent, Sprite sprite, float worldHeight, string name = "Billboard")
         {
@@ -60,6 +68,42 @@ namespace RHMG.Runtime.Visuals
             m_Renderer.enabled = sprite != null;
             float h = sprite != null ? sprite.bounds.size.y : 1f;
             m_BaseScale = h > 0.0001f ? worldHeight / h / m_ParentScaleY : 1f;
+            UpdateDeformer(sprite);
+        }
+
+        private void UpdateDeformer(Sprite sprite)
+        {
+            if (sprite == null)
+            {
+                if (m_Deformer != null) m_Deformer.SetSprite(null);
+                return;
+            }
+            if (m_Deformer == null)
+            {
+                AnimProfile profile = DeformEnabled ? AnimProfiles.ForSpriteName(sprite.name) : null;
+                if (profile != null) m_Deformer = SpriteDeformer.Attach(gameObject, m_Renderer, sprite, profile);
+            }
+            else if (!m_Deformer.SetSprite(sprite))
+            {
+                return; // deformer hid its mesh; the SpriteRenderer stays visible
+            }
+            if (m_Deformer != null && m_Deformer.MeshActive) m_Renderer.enabled = false;
+        }
+
+        /// <summary>Heavy attack anticipation: swell + lean back for <paramref name="seconds"/>, then strike.</summary>
+        public void PlayWindup(float seconds)
+        {
+            if (m_Deformer != null) m_Deformer.PlayWindup(seconds);
+        }
+
+        public void PlayDeath()
+        {
+            if (m_Deformer != null) m_Deformer.PlayDeath();
+        }
+
+        public void Revive()
+        {
+            if (m_Deformer != null) m_Deformer.Revive();
         }
 
         public void SetSortingOrder(int order)
@@ -76,6 +120,7 @@ namespace RHMG.Runtime.Visuals
         public void PunchCast()
         {
             m_Punch = PunchSeconds;
+            if (m_Deformer != null) m_Deformer.PlayCast();
         }
 
         /// <summary>Uniform 1 -> 1.15 -> 1 in 0.2 s (outfit change), same feel as the primitive slot pop.</summary>
@@ -96,6 +141,7 @@ namespace RHMG.Runtime.Visuals
         {
             m_Renderer.color = color;
             m_FlashTimer = Mathf.Max(0.01f, seconds);
+            if (m_Deformer != null) m_Deformer.PlayHit();
         }
 
         /// <summary>Point on the image (0..1, left-bottom origin, as drawn facing right) in world space; mirrors when flipped.</summary>
@@ -119,11 +165,17 @@ namespace RHMG.Runtime.Visuals
 
         private void LateUpdate()
         {
-            float dt = Time.deltaTime;
+            Advance(Time.deltaTime);
+        }
+
+        // Shared by the live frame and the development-only deterministic animation probe.
+        internal void Advance(float dt)
+        {
             m_TargetSign = ReadParentSign(m_TargetSign);
             m_FlipX = Mathf.MoveTowards(m_FlipX, m_TargetSign, 2f / FlipSeconds * dt);
             m_Speed = Mathf.MoveTowards(m_Speed, m_SpeedTarget, 6f * dt);
             m_Phase += dt;
+            if (m_Deformer != null) m_Deformer.Tick(dt, m_Speed);
 
             float breath = 1f + Mathf.Sin(m_Phase * Mathf.PI * 2f / BreathPeriod) * BreathAmp * (1f - m_Speed);
             float runPhase = m_Phase * Mathf.PI * BobHz;

@@ -13,7 +13,8 @@ namespace RHMG.Runtime.Visuals
 
             // Regular enemies grow 1.25x; the CageWarden keeps its 2.5x boss silhouette.
             bool isWarden = kind == EnemyKind.CageWarden;
-            root.transform.localScale = Vector3.one * (isWarden ? 2.5f : 1.25f);
+            bool newBoss = kind == EnemyKind.SandQueen || kind == EnemyKind.BlueHairGuy;
+            root.transform.localScale = Vector3.one * (isWarden ? 2.5f : (newBoss ? 3.25f : 1.25f));
 
             switch (kind)
             {
@@ -56,13 +57,16 @@ namespace RHMG.Runtime.Visuals
                     break;
 
                 case EnemyKind.CageWarden:
-                    Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, 0.90f, 0f), new Vector3(0.95f, 1.10f, 0.65f), Palette.AshGrey, "WardenTorso");
-                    Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, 1.55f, 0f), new Vector3(0.55f, 0.50f, 0.55f), Palette.AshGrey, "WardenHelm");
+                case EnemyKind.SandQueen:
+                case EnemyKind.BlueHairGuy:
+                    Color wardenBody = kind == EnemyKind.CageWarden ? Palette.AshGrey : Palette.EnemyPurple;
+                    Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, 0.90f, 0f), new Vector3(0.95f, 1.10f, 0.65f), wardenBody, "WardenTorso");
+                    Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, 1.55f, 0f), new Vector3(0.55f, 0.50f, 0.55f), wardenBody, "WardenHelm");
                     Prim.Make(PrimitiveType.Cube, root.transform, new Vector3(0f, 1.55f, 0.26f), new Vector3(0.42f, 0.10f, 0.08f), Palette.WarnRed, "WardenVisor");
-                    Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(-0.65f, 0.85f, 0.15f), new Vector3(0.26f, 0.80f, 0.26f), Palette.AshGrey, "ArmL");
-                    Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(0.65f, 0.85f, -0.10f), new Vector3(0.26f, 0.80f, 0.26f), Palette.AshGrey, "ArmR");
-                    Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(-0.28f, 0.22f, 0f), new Vector3(0.26f, 0.44f, 0.26f), Palette.AshGrey, "LegL");
-                    Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0.28f, 0.22f, 0f), new Vector3(0.26f, 0.44f, 0.26f), Palette.AshGrey, "LegR");
+                    Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(-0.65f, 0.85f, 0.15f), new Vector3(0.26f, 0.80f, 0.26f), wardenBody, "ArmL");
+                    Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(0.65f, 0.85f, -0.10f), new Vector3(0.26f, 0.80f, 0.26f), wardenBody, "ArmR");
+                    Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(-0.28f, 0.22f, 0f), new Vector3(0.26f, 0.44f, 0.26f), wardenBody, "LegL");
+                    Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0.28f, 0.22f, 0f), new Vector3(0.26f, 0.44f, 0.26f), wardenBody, "LegR");
 
                     Transform cage = new GameObject("HeldCage").transform;
                     cage.SetParent(root.transform, false);
@@ -73,7 +77,7 @@ namespace RHMG.Runtime.Visuals
                     {
                         float bx = (b % 2 == 0 ? -0.20f : 0.20f);
                         float bz = (b / 2 == 0 ? -0.20f : 0.20f);
-                        Prim.Make(PrimitiveType.Cylinder, cage, new Vector3(bx, 0f, bz), new Vector3(0.04f, 0.50f, 0.04f), Palette.AshGrey, $"Bar_{b}");
+                        Prim.Make(PrimitiveType.Cylinder, cage, new Vector3(bx, 0f, bz), new Vector3(0.04f, 0.50f, 0.04f), wardenBody, $"Bar_{b}");
                     }
                     break;
             }
@@ -84,7 +88,7 @@ namespace RHMG.Runtime.Visuals
             {
                 CharacterSprites.SetPrimitivesVisible(root.transform, null, false);
                 SpriteBillboard billboard = SpriteBillboard.Create(root.transform, sprite, CharacterSprites.EnemyHeight(kind));
-                billboard.SetMotion(kind == EnemyKind.SandBeetle ? 1f : kind == EnemyKind.Sentinel ? 0.5f : 0f);
+                billboard.SetMotion(0f);
             }
 
             float shadowRadius = 0.50f;
@@ -97,6 +101,8 @@ namespace RHMG.Runtime.Visuals
                     shadowRadius = 0.55f;
                     break;
                 case EnemyKind.CageWarden:
+                case EnemyKind.SandQueen:
+                case EnemyKind.BlueHairGuy:
                     shadowRadius = 1.20f;
                     break;
             }

@@ -86,7 +86,7 @@ namespace RHMG.Runtime.Combat
             float nearestDistance = CombatTuning.DogTargetRadius * CombatTuning.DogTargetRadius;
             foreach (EnemyController enemy in world.Enemies)
             {
-                if (enemy == null || !enemy.Alive ||
+                if (enemy == null || !enemy.Targetable ||
                     !CombatMath.Overlap(enemy.transform.position, 0f, Owner.transform.position,
                         CombatTuning.DogTargetRadius) ||
                     !CombatMath.Overlap(enemy.transform.position, enemy.Radius, transform.position,

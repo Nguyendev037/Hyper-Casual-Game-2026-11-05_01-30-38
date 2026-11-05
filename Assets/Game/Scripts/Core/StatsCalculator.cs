@@ -16,6 +16,14 @@ namespace RHMG.Core
         public float ShieldPower;
         public float BurnPower;
         public float WoodHealPower;
+        public float MagnetRadius;
+        public int ProjectileCount;
+        public int Pierce;
+        /// <summary>Fraction of incoming damage removed (0.06 per stack).</summary>
+        public float Armor;
+        public float Regen;
+        public float XpGainMult;
+        public float SpiritPower;
     }
 
     public static class StatsCalculator
@@ -23,6 +31,7 @@ namespace RHMG.Core
         public const float MountedMoveMultiplier = 1.15f;
         public const float MinAttackInterval = 0.25f;
         public const float MinCommandCooldown = 4f;
+        public const float MaxArmor = 0.75f;
 
         public static float ClampOutfitBonus(float percent)
         {
@@ -53,7 +62,7 @@ namespace RHMG.Core
             s.MoveSpeed = Catalog.BaseMoveSpeed * Scale(outfit, upgrade, StatKind.MoveSpeed);
             s.StaffDamage = Catalog.BaseStaffDamage * Scale(outfit, upgrade, StatKind.StaffDamage);
             s.AttackInterval = Catalog.BaseAttackInterval * Scale(outfit, upgrade, StatKind.AttackInterval);
-            s.Range = Catalog.BaseRange;
+            s.Range = Catalog.BaseRange * Scale(outfit, upgrade, StatKind.Range);
             s.DogDamage = Catalog.BaseDogDamage * Scale(outfit, upgrade, StatKind.DogDamage)
                 * DogProgress.DogDamageMultiplier(DogProgress.GetTier(dogSealMask));
             s.DogInterval = Catalog.BaseDogInterval;
@@ -61,6 +70,14 @@ namespace RHMG.Core
             s.ShieldPower = Catalog.BasePower * Scale(outfit, upgrade, StatKind.ShieldPower);
             s.BurnPower = Catalog.BasePower * Scale(outfit, upgrade, StatKind.BurnPower);
             s.WoodHealPower = Catalog.BasePower * Scale(outfit, upgrade, StatKind.WoodHealPower);
+
+            s.MagnetRadius = SurvivorTuning.BaseMagnetRadius * Scale(outfit, upgrade, StatKind.MagnetRadius);
+            s.ProjectileCount = Math.Max(1, (int)Math.Round(Scale(outfit, upgrade, StatKind.ProjectileCount)));
+            s.Pierce = Math.Max(0, (int)Math.Round(upgrade[(int)StatKind.Pierce] + outfit[(int)StatKind.Pierce]));
+            s.Armor = Math.Max(0f, Math.Min(MaxArmor, upgrade[(int)StatKind.Armor] + outfit[(int)StatKind.Armor]));
+            s.Regen = Math.Max(0f, upgrade[(int)StatKind.Regen] + outfit[(int)StatKind.Regen]);
+            s.XpGainMult = Scale(outfit, upgrade, StatKind.XpGain);
+            s.SpiritPower = Scale(outfit, upgrade, StatKind.SpiritPower);
 
             if (mounted)
             {

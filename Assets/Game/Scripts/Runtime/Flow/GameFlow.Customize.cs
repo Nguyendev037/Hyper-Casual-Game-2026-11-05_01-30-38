@@ -2,123 +2,82 @@ using System.Collections.Generic;
 using RHMG.Core;
 using RHMG.Runtime.Combat;
 using RHMG.Runtime.Visuals;
+using RHMG.Runtime.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RHMG.Runtime
 {
     public sealed partial class GameFlow
     {
-        string fusionA = "spirit.dew";
-        string fusionB = "spirit.ember";
-
-        void DrawFusion()
+        // Spirit book (SPEC-P02 §5): read-only list of the 6 spirits, their recipes and whether they are unlocked.
+        // Permanent fusion is gone: fusing happens at the stations during a run.
+        void DrawSpiritBook()
         {
+            bool fromMenu = mode == Mode.Menu;
             SetMode(Mode.Rest);
             SetPaused(true);
             Clear();
-            IReadOnlyList<string> available = fusion.AvailableSpirits();
-            Label("Bàn dung hợp", 0.82f, 80);
             AddListPanel();
-            Label(Loc.F("Nguyên liệu A: {0} · Dùng thử", SpiritName(fusionA)), 0.72f, 40);
-            Label(Loc.F("Nguyên liệu B: {0}", SpiritName(fusionB)), 0.63f, 40);
-            Button("Đổi A", 0.53f, () => CycleSpirit(available, true));
-            Button("Đổi B", 0.43f, () => CycleSpirit(available, false));
-            FusionCheck check = fusion.Preview(fusionA, fusionB, out FusionRecipe recipe);
-            string preview = check == FusionCheck.Ok
-                ? Loc.T(Catalog.GetSpirit(recipe.OutputId).DisplayName) + " — " + Loc.T("Nổ vùng nhỏ rồi làm chậm")
-                : FusionMessage(check);
-            Label(preview, 0.31f, 40);
-            Log("fusion_preview", check == FusionCheck.Ok ? recipe.Id : check.ToString());
-            Button("Dung hợp", 0.22f, () => ConfirmFusion(check, recipe));
-            Button("Tách Hơi Nước", 0.12f, Unfuse);
+            Label("Sổ tinh linh", 0.84f, 72);
+            IReadOnlyList<SpiritDefinition> spirits = Catalog.Spirits;
+            for (int i = 0; i < spirits.Count; i++)
+            {
+                SpiritDefinition def = spirits[i];
+                bool unlocked = def.IsFusion
+                    ? SpiritBookFusionUnlocked(def.Id)
+                    : save.unlockedSpiritIds.Contains(def.Id);
+                string line = SpiritName(def.Id) + " · " + ElementName(def.Element) + " · " +
+                    (unlocked ? Loc.T("Đã mở khóa") : Loc.T("Chưa mở"));
+                if (def.IsFusion)
+                {
+                    FusionRecipe recipe = RecipeFor(def.Id);
+                    if (recipe != null)
+                    {
+                        line += "\n" + SpiritName(recipe.IngredientA) + " + " + SpiritName(recipe.IngredientB);
+                    }
+                }
+
+                Text entry = UiKit.Text(root, line, 36, unlocked ? Color.white : new Color(1f, 1f, 1f, 0.55f),
+                    TextAnchor.MiddleCenter);
+                SetCardRect(entry.rectTransform, new Vector2(0.1f, 0.74f - i * 0.1f), new Vector2(0.9f, 0.82f - i * 0.1f));
+                entry.raycastTarget = false;
+            }
+
             Button("Quay lại", 0.02f, () =>
             {
+                if (fromMenu) { ShowMenu(); return; }
                 SetPaused(false);
                 DrawRest();
             });
         }
 
-        void CycleSpirit(IReadOnlyList<string> available, bool first)
+        static FusionRecipe RecipeFor(string outputId)
         {
-            if (available.Count == 0)
+            for (int i = 0; i < Catalog.Recipes.Count; i++)
             {
-                return;
-            }
-            string current = first ? fusionA : fusionB;
-            int index = 0;
-            for (int i = 0; i < available.Count; i++)
-            {
-                if (available[i] == current)
+                if (Catalog.Recipes[i].OutputId == outputId)
                 {
-                    index = (i + 1) % available.Count;
-                    break;
+                    return Catalog.Recipes[i];
                 }
             }
-            if (first)
-            {
-                fusionA = available[index];
-            }
-            else
-            {
-                fusionB = available[index];
-            }
-            DrawFusion();
+
+            return null;
         }
 
-        string FusionMessage(FusionCheck check)
+        // A fusion spirit shows as unlocked once both of its ingredients are.
+        bool SpiritBookFusionUnlocked(string outputId)
         {
-            switch (check)
-            {
-                case FusionCheck.NoRecipe:
-                    return "Chưa có cộng hưởng";
-                case FusionCheck.MissingIngredient:
-                    return "Thiếu tinh linh nguyên liệu";
-                case FusionCheck.IngredientLocked:
-                    return "Nguyên liệu đang bị khóa";
-                case FusionCheck.SameSpirit:
-                    return "Hãy chọn hai tinh linh khác nhau";
-                default:
-                    return string.Empty;
-            }
-        }
-
-        void ConfirmFusion(FusionCheck check, FusionRecipe recipe)
-        {
-            Log("fusion_preview", check == FusionCheck.Ok ? recipe.Id : check.ToString());
-            if (check != FusionCheck.Ok)
-            {
-                Toast(FusionMessage(check));
-                return;
-            }
-            FusionCheck result = fusion.Fuse(fusionA, fusionB);
-            if (result != FusionCheck.Ok)
-            {
-                Toast(FusionMessage(result));
-                return;
-            }
-            Log("fusion_confirm", recipe.Id);
-            SaveNow();
-            spiritId = recipe.OutputId;
-            combat?.SetSpirit(spiritId);
-            combat?.SpawnDummy(Vector3.zero);
-            audioHub.Play("fusion");
-            Toast("Đã dung hợp Hơi Nước");
-        }
-
-        void Unfuse()
-        {
-            if (fusion.Unfuse("recipe.steam"))
-            {
-                spiritId = "spirit.dew";
-                combat?.SetSpirit(spiritId);
-                SaveNow();
-            }
+            FusionRecipe recipe = RecipeFor(outputId);
+            return recipe != null && save.unlockedSpiritIds.Contains(recipe.IngredientA) &&
+                save.unlockedSpiritIds.Contains(recipe.IngredientB);
         }
 
         void DrawWardrobe()
         {
             SetPaused(true);
             Clear();
+            if (DrawLayoutWardrobe()) return;
             AddListPanel();
             Label(Loc.F("Tủ đồ · {0}", mode == Mode.Showcase ? Loc.T("Thử miễn phí") : Loc.F("{0} vàng", save.gold)),
                 0.86f, 80);
@@ -181,6 +140,9 @@ namespace RHMG.Runtime
             playerMaxHp = Mathf.CeilToInt(stats.MaxHp);
             combat?.ApplyStats(stats);
             DrawWardrobe();
+            Toast(Loc.T(outfit.BenefitText));
+            toastText.color = UiLayout.Palette("equip_fx");
+            toastUntil = Time.unscaledTime + 1.5f;
         }
 
     }

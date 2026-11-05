@@ -6,30 +6,33 @@ using UnityEngine.UI;
 
 namespace RHMG.Runtime
 {
-    // Shared in-world HUD (Tower + Rest). Elements are pinned to screen corners with fixed pixel
-    // sizes so nothing drifts or overlaps on tall (20:9) phones. Layout table: SPEC-P02 §2b.
+    // Shared in-world HUD (Tower + Station + Rest). Elements are pinned to screen corners with fixed pixel
+    // sizes so nothing drifts or overlaps on tall (20:9) phones. The spirit command button is gone (SPEC-P01 §1):
+    // the girl, the dog and the spirits act by themselves, the player only moves.
     public sealed partial class GameFlow
     {
         const float HudEdge = 24f;
-        const float CommandSize = 300f;
-        const float CommandMargin = 64f;
-        const int SpiritJoinFloor = 2;
 
         Text floorText;
         Text goldText;
+        Text levelText;
+        Text timeText;
+        Text bossLabel;
+        RectTransform xpFill;
         Image clockIcon;
         int displayedGold = int.MinValue;
         int displayedFloor = int.MinValue;
+        int displayedLevel = int.MinValue;
+        int displayedTime = int.MinValue;
+        float displayedXp = -1f;
 
         static readonly Vector2 TopLeft = new Vector2(0f, 1f);
         static readonly Vector2 TopRight = new Vector2(1f, 1f);
         static readonly Vector2 TopCenter = new Vector2(0.5f, 1f);
-        static readonly Vector2 BottomRight = new Vector2(1f, 0f);
-
-        bool HasSpirit => !string.IsNullOrEmpty(spiritId);
 
         void DrawTopHud(string healthName, bool bossFloor)
         {
+            if (DrawLayoutHud(bossFloor)) return;
             // Row 1 left: health frame (heart baked in) with the number inside the channel.
             RectTransform hpBar = UiKit.ProgressBar(root, healthName, new Color(0.88f, 0.25f, 0.26f), out hpFill);
             Place(hpBar, TopLeft, TopLeft, new Vector2(-60f, -16f), new Vector2(512f, 128f));
@@ -52,9 +55,16 @@ namespace RHMG.Runtime
             goldText = HudText("HudGold", TopLeft, new Vector2(392f, -140f), new Vector2(180f, 64f),
                 TextAnchor.MiddleLeft, Palette.LightGold);
 
-            // Row 3 left: dog tier.
-            HudText("HudDog", TopLeft, new Vector2(HudEdge, -212f), new Vector2(520f, 56f),
-                TextAnchor.MiddleLeft, Color.white).text = DogTierName(DogProgress.GetTier(save.dogSealMask));
+            // Row 3 left: level + XP bar (spirit stones).
+            levelText = HudText("HudLevel", TopLeft, new Vector2(HudEdge, -212f), new Vector2(150f, 56f),
+                TextAnchor.MiddleLeft, Palette.LightGold);
+            RectTransform xpBack = SolidRect(root, "XpBar", new Color(0.05f, 0.05f, 0.09f, 0.85f));
+            Place(xpBack, TopLeft, TopLeft, new Vector2(176f, -226f), new Vector2(380f, 28f));
+            xpFill = SolidRect(xpBack, "XpFill", new Color(0.45f, 0.88f, 1f, 1f));
+            xpFill.anchorMin = new Vector2(0f, 0f);
+            xpFill.anchorMax = new Vector2(0f, 1f);
+            xpFill.offsetMin = new Vector2(3f, 3f);
+            xpFill.offsetMax = new Vector2(0f, -3f);
 
             // Row 1 right: pause (smallest, rarely used) and the day/night clock left of it.
             DrawPauseButton();
@@ -68,20 +78,49 @@ namespace RHMG.Runtime
             clockText = HudText("HudClock", TopRight, new Vector2(-(HudEdge + 132f + 20f + 96f + 12f), -HudEdge - 18f),
                 new Vector2(210f, 96f), TextAnchor.MiddleRight, Color.white);
 
+            // Row 2 right: time left on the floor.
+            timeText = HudText("HudTime", TopRight, new Vector2(-HudEdge, -150f), new Vector2(300f, 80f),
+                TextAnchor.MiddleRight, Color.white);
+            timeText.fontSize = 60;
+
             // Boss floor: name + bar centred below the left column.
-            Text bossLabel = HudText("HudBoss", TopCenter, new Vector2(0f, -290f), new Vector2(640f, 56f),
+            bossLabel = HudText("HudBoss", TopCenter, new Vector2(0f, -290f), new Vector2(640f, 56f),
                 TextAnchor.MiddleCenter, Color.white);
-            bossLabel.text = Loc.T("Hộ Vệ Lồng Cát");
+            bossLabel.text = BossNameFor(run == null ? 0 : run.CurrentFloor);
             RectTransform bossBar = UiKit.ProgressBar(root, "BossHealth", Palette.WarnRed, out bossFill);
             Place(bossBar, TopCenter, TopCenter, new Vector2(0f, -330f), new Vector2(512f, 128f));
             bossLabel.gameObject.SetActive(bossFloor);
             bossBar.gameObject.SetActive(bossFloor);
+            bossFill.fillAmount = bossFloor ? 1f : 0f;
 
             displayedHp = int.MinValue;
             displayedClock = int.MinValue;
             displayedPhase = (DayPhase)(-1);
             displayedGold = int.MinValue;
             displayedFloor = int.MinValue;
+            displayedLevel = int.MinValue;
+            displayedTime = int.MinValue;
+            displayedXp = -1f;
+        }
+
+        static string BossNameFor(int floor)
+        {
+            switch (FloorPlan.Kind(floor))
+            {
+                case FloorKind.MidBoss: return Loc.T("Nữ Hoàng Cát Lồng");
+                case FloorKind.FinalBoss: return "Blue Hair Guy";
+                default: return Loc.T("Hộ Vệ Lồng Cát");
+            }
+        }
+
+        static RectTransform SolidRect(Transform parent, string name, Color color)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            Image image = go.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            return (RectTransform)go.transform;
         }
 
         void DrawPauseButton()
@@ -98,55 +137,12 @@ namespace RHMG.Runtime
             pause.onClick.AddListener(Pause);
         }
 
-        // Spirit command: only exists while a spirit travels with the girl (none on floor 1 of a run).
-        void DrawCommandControls()
-        {
-            commandFill = null;
-            if (HasSpirit)
-            {
-                bool borrowed = false;
-                foreach (string trialId in Catalog.DemoTrialSpiritIds) borrowed |= trialId == spiritId;
-                // Right-aligned to the screen edge so long translations grow leftward, never off-screen.
-                Text spiritLabel = HudText("HudSpirit", BottomRight,
-                    new Vector2(-HudEdge, CommandMargin + CommandSize + 8f),
-                    new Vector2(640f, 56f), TextAnchor.MiddleRight, CommandElementColor());
-                spiritLabel.text = SpiritName(spiritId) + " · " + CommandElementName() +
-                    (borrowed ? " " + Loc.T("(mượn)") : string.Empty);
-
-                Button command = UiKit.CircleButton(root, CommandElementName(), CommandElementColor());
-                command.gameObject.name = "CommandButton";
-                Place((RectTransform)command.transform, BottomRight, BottomRight,
-                    new Vector2(-CommandMargin, CommandMargin), new Vector2(CommandSize, CommandSize));
-                Image commandIcon = UiKit.Icon(command.transform, UiSkin.IconIdFor(spiritId), new Vector2(150f, 150f));
-                commandIcon.raycastTarget = false;
-                if (commandIcon.sprite != null) command.transform.GetChild(0).gameObject.SetActive(false);
-                else command.transform.GetChild(0).SetAsLastSibling();
-
-                // Cooldown darkens the inner disc (inside the gold ring) on top of the icon.
-                Image radial = UiKit.Circle(command.transform, "Cooldown", new Color(0.04f, 0.07f, 0.1f, 0.62f));
-                radial.type = Image.Type.Filled;
-                radial.fillMethod = Image.FillMethod.Radial360;
-                radial.fillOrigin = (int)Image.Origin360.Top;
-                radial.fillClockwise = false;
-                radial.fillAmount = 0f;
-                radial.raycastTarget = false;
-                SetRect(radial.rectTransform, new Vector2(0.2f, 0.2f), new Vector2(0.8f, 0.8f));
-                radial.transform.SetAsLastSibling();
-                commandFill = radial;
-
-                command.onClick.AddListener(() => audioHub.Play("ui"));
-                command.onClick.AddListener(() => combat?.TryCommand());
-            }
-            sizeAudit.Capture(root, mode.ToString());
-        }
-
         // Invisible drag area for the floating joystick; drawn FIRST so buttons stay on top of it.
-        // Right edge stops 32 px left of the command button on every width (SPEC-P02 §1 spacing).
-        void DrawJoystickArea(float top = 0.55f)
+        // The whole lower part of the screen is the stick: there is no command button any more.
+        void DrawJoystickArea(float top = 0.62f)
         {
             RectTransform area = UiKit.Panel(root, "JoystickArea", Vector2.zero, new Vector2(1f, top),
                 new Color(0, 0, 0, 0));
-            area.offsetMax = new Vector2(-(CommandMargin + CommandSize + 32f), 0f);
             area.gameObject.AddComponent<FloatingJoystick>().Changed += value => combat?.SetMoveInput(value);
         }
 

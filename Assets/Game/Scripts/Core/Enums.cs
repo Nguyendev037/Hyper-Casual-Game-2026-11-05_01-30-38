@@ -38,7 +38,15 @@ namespace RHMG.Core
         CommandCooldown,
         ShieldPower,
         BurnPower,
-        WoodHealPower
+        WoodHealPower,
+        Range,
+        MagnetRadius,
+        ProjectileCount,
+        Pierce,
+        Armor,
+        Regen,
+        XpGain,
+        SpiritPower
     }
 
     public enum EnemyKind
@@ -46,7 +54,9 @@ namespace RHMG.Core
         SandBeetle,
         SandEye,
         Sentinel,
-        CageWarden
+        CageWarden,
+        SandQueen,
+        BlueHairGuy
     }
 
     public enum DogTier
@@ -64,7 +74,9 @@ namespace RHMG.Core
         Upgrade,
         Rescue,
         Rest,
-        Defeat
+        Defeat,
+        LevelUp,
+        Station
     }
 
     public enum LoadOutcome

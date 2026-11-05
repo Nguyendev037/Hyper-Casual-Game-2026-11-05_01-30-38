@@ -16,13 +16,15 @@ namespace RHMG.Runtime
         {
             Menu,
             Tower,
-            Upgrade,
             Rescue,
             Rest,
             Showcase,
             Pause,
             Result,
-            Credits
+            Credits,
+            LevelUp,
+            Station,
+            StationPick
         }
 
         SaveData save;
@@ -54,11 +56,21 @@ namespace RHMG.Runtime
 #endif
         float toastUntil;
         float runStarted;
-        string spiritId; // null = no spirit travels with the girl (floor 1 of a run)
+        // Survivor loop state (GameFlow.Survivor.cs)
+        PlayerStats currentStats;
+        bool floorClearPending;
+        Mode levelUpReturnMode;
+        float levelUpOpenedAt;
+        bool levelUpShown;
+        int pendingTileIndex = -1;
+        StationTile pendingTileKind;
+        public float RunTimeScale = 1f;
+        public int LevelUpsThisRun { get; private set; }
+        public int GemPickupsThisRun { get; private set; }
+        public int StationsLeftThisRun { get; private set; }
         int seed = 20261105;
         Image hpFill;
         Image bossFill;
-        Image commandFill;
         Image clockFill;
         Text hpText;
         Text clockText;
@@ -137,8 +149,8 @@ namespace RHMG.Runtime
             // The canvas is screen-space overlay: an opaque backdrop here hides the 3D world.
             // World screens (tower, rest, showcase) get nothing; paused-over-world screens get a dim
             // tint; only pure menu screens get the painted bg_tower.
-            bool worldScreen = mode == Mode.Tower || mode == Mode.Showcase || (mode == Mode.Rest && !clock.Paused);
-            bool dimmedWorld = mode == Mode.Pause || (mode == Mode.Rest && clock.Paused);
+            bool worldScreen = mode == Mode.Tower || mode == Mode.Station || mode == Mode.Showcase || (mode == Mode.Rest && !clock.Paused);
+            bool dimmedWorld = mode == Mode.Pause || mode == Mode.LevelUp || mode == Mode.StationPick || (mode == Mode.Rest && clock.Paused);
             if (worldScreen || mode == Mode.Menu)
             {
                 return;
@@ -250,10 +262,11 @@ namespace RHMG.Runtime
                 toastPanel.gameObject.SetActive(false);
                 ShowNextToast();
             }
-            if (mode == Mode.Tower || mode == Mode.Rest || mode == Mode.Showcase)
+            if (mode == Mode.Tower || mode == Mode.Station || mode == Mode.Rest || mode == Mode.Showcase)
             {
                 ReadKeyboard();
             }
+            CheckLevelUpWatchdog();
             if (combat != null && combat.Running)
             {
                 clock.Tick(Time.deltaTime);
@@ -276,10 +289,6 @@ namespace RHMG.Runtime
             {
                 Pause();
             }
-            if (keyboard.spaceKey.wasPressedThisFrame)
-            {
-                combat?.TryCommand();
-            }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (keyboard.f9Key.wasPressedThisFrame && mode == Mode.Tower)
             {
@@ -288,7 +297,7 @@ namespace RHMG.Runtime
             }
             if (debugAutoWin && mode == Mode.Tower && combat != null)
             {
-                DebugFloorHelper.ClearSpawnedEnemies(combat);
+                combat.DebugEndFloor();
             }
 #endif
         }

@@ -163,6 +163,8 @@ namespace RHMG.Runtime.Visuals
             if (spiritId == "spirit.dew") auraColor = Palette.WaterBlue;
             else if (spiritId == "spirit.ember") auraColor = Palette.FireOrange;
             else if (spiritId == "spirit.steam") auraColor = Palette.WaterBlue;
+            else if (spiritId == "spirit.bud" || spiritId == "spirit.growth") auraColor = Palette.LeafGreen;
+            else if (spiritId == "spirit.wildfire") auraColor = Palette.FireOrange;
 
             Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(0f, 0.30f, 0f), new Vector3(0.36f, 0.40f, 0.36f), Palette.Sand, "JarBody");
             Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0f, 0.52f, 0f), new Vector3(0.28f, 0.08f, 0.28f), Palette.Sand, "JarRim");
@@ -196,6 +198,25 @@ namespace RHMG.Runtime.Visuals
         public static GameObject CreateEnemy(EnemyKind kind, Transform parent)
         {
             return EnemyBuilder.Build(kind, parent);
+        }
+
+        /// <summary>Corrupted anchor (Blue Hair Guy phase 3): boss_anchor image, else a dark crystal on a base.</summary>
+        public static GameObject CreateAnchor(Transform parent)
+        {
+            GameObject root = new GameObject("Anchor");
+            if (parent != null) root.transform.SetParent(parent, false);
+            Prim.Make(PrimitiveType.Cylinder, root.transform, new Vector3(0f, 0.1f, 0f), new Vector3(1.2f, 0.2f, 1.2f), Palette.Ink, "AnchorBase");
+            Prim.Make(PrimitiveType.Capsule, root.transform, new Vector3(0f, 1.0f, 0f), new Vector3(0.7f, 0.9f, 0.7f), Palette.EnemyPurple, "AnchorCrystal");
+            Prim.Make(PrimitiveType.Sphere, root.transform, new Vector3(0f, 1.1f, 0.3f), new Vector3(0.25f, 0.25f, 0.25f), Palette.WarnRed, "AnchorCore");
+            Sprite sprite = CharacterSprites.Anchor();
+            if (sprite != null)
+            {
+                CharacterSprites.SetPrimitivesVisible(root.transform, null, false);
+                SpriteBillboard.Create(root.transform, sprite, CharacterSprites.AnchorHeight).SetMotion(0f);
+            }
+
+            BlobShadow.Create(root.transform, 0.9f);
+            return root;
         }
 
         public static GameObject CreateDummy(Transform parent)

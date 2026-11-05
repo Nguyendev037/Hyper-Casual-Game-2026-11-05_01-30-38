@@ -122,10 +122,9 @@ namespace RHMG.Runtime
             }
         }
 
-        string CommandElementName()
+        static string ElementName(Element element)
         {
-            if (string.IsNullOrEmpty(spiritId)) return Loc.T("Lệnh");
-            switch (Catalog.GetSpirit(spiritId).Element)
+            switch (element)
             {
                 case Element.Water: return Loc.T("Thủy");
                 case Element.Fire: return Loc.T("Hỏa");
@@ -136,12 +135,6 @@ namespace RHMG.Runtime
                 case Element.Dark: return Loc.T("Bóng Tối");
                 default: return Loc.T("Lệnh");
             }
-        }
-
-        Color CommandElementColor()
-        {
-            if (string.IsNullOrEmpty(spiritId)) return Color.white;
-            return RHMG.Runtime.Visuals.Palette.ForElement(Catalog.GetSpirit(spiritId).Element);
         }
 
         static void SetCardRect(RectTransform rect, Vector2 min, Vector2 max)

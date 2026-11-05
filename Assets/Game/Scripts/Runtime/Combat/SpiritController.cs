@@ -5,112 +5,218 @@ using RHMG.Runtime.Visuals;
 
 namespace RHMG.Runtime.Combat
 {
+    /// <summary>Up to 3 spirits circling the girl; each shoots by itself and casts its skill by itself (SPEC-P02 §2).</summary>
     public sealed class SpiritController : MonoBehaviour
     {
+        private sealed class Instance
+        {
+            public string Id;
+            public int Level;
+            public SpiritDefinition Definition;
+            public GameObject Visual;
+            public float AutoTimer;
+            public float SkillTimer;
+        }
+
         private CombatWorld world;
         private PlayerController owner;
         private DayNightClock clock;
-        private SpiritDefinition definition;
-        private readonly Dictionary<string, GameObject> spiritVisuals = new Dictionary<string, GameObject>();
-        private float autoTimer;
-        private float commandTimer;
+        private readonly List<Instance> spirits = new List<Instance>(SurvivorTuning.SpiritSlots);
+        private readonly Dictionary<string, GameObject> visuals = new Dictionary<string, GameObject>();
+        private float lastCast = -100f;
+        private float orbit;
 
-        public float CommandCooldown01 => owner == null || owner.Stats.CommandCooldown <= 0f
-            ? 0f
-            : Mathf.Clamp01(commandTimer / owner.Stats.CommandCooldown);
+        public int Count => spirits.Count;
+        /// <summary>Seconds of simulation at the last skill cast of any spirit (test/debug).</summary>
+        public float LastCastTime => lastCast;
+        public int CastsDone { get; private set; }
+        public float CommandCooldown01 => 0f;
 
         public void Init(CombatWorld combatWorld, PlayerController player, DayNightClock dayNightClock)
         {
             world = combatWorld;
             owner = player;
             clock = dayNightClock;
-            spiritVisuals.Add("spirit.dew", CharacterFactory.CreateSpirit("spirit.dew", transform));
-            spiritVisuals.Add("spirit.ember", CharacterFactory.CreateSpirit("spirit.ember", transform));
-            spiritVisuals.Add("spirit.steam", CharacterFactory.CreateSpirit("spirit.steam", transform));
-            foreach (GameObject visual in spiritVisuals.Values)
+        }
+
+        /// <summary>Synchronises with the run's slots. Spirits that stay keep their timers; new ones start late.</summary>
+        public void SetSpirits(IReadOnlyList<RunSpiritEntry> slots)
+        {
+            List<Instance> next = new List<Instance>(SurvivorTuning.SpiritSlots);
+            int count = slots == null ? 0 : Mathf.Min(slots.Count, SurvivorTuning.SpiritSlots);
+            for (int i = 0; i < count; i++)
             {
-                visual.SetActive(false);
+                RunSpiritEntry entry = slots[i];
+                Instance existing = spirits.Find(s => s.Id == entry.spiritId);
+                if (existing == null)
+                {
+                    SpiritDefinition def = Catalog.GetSpirit(entry.spiritId);
+                    if (def == null)
+                    {
+                        continue;
+                    }
+
+                    existing = new Instance();
+                    existing.Id = entry.spiritId;
+                    existing.Definition = def;
+                    existing.AutoTimer = def.AutoInterval;
+                    // first skill: half a cooldown plus a per-slot offset so two spirits never fire together
+                    existing.SkillTimer = def.CommandCooldown * 0.5f + i * CombatTuning.SpiritCastGap;
+                }
+
+                existing.Level = Mathf.Clamp(entry.level, 1, SurvivorTuning.SpiritMaxLevel);
+                next.Add(existing);
+            }
+
+            foreach (Instance old in spirits)
+            {
+                if (!next.Contains(old) && old.Visual != null)
+                {
+                    old.Visual.SetActive(false);
+                }
+            }
+
+            spirits.Clear();
+            spirits.AddRange(next);
+            foreach (Instance s in spirits)
+            {
+                s.Visual = VisualFor(s.Id);
+                s.Visual.SetActive(true);
             }
         }
 
         public void SetSpirit(string spiritId)
         {
-            definition = string.IsNullOrEmpty(spiritId) ? null : Catalog.GetSpirit(spiritId);
-            foreach (GameObject visual in spiritVisuals.Values)
+            List<RunSpiritEntry> one = new List<RunSpiritEntry>();
+            if (!string.IsNullOrEmpty(spiritId) && Catalog.GetSpirit(spiritId) != null)
             {
-                visual.SetActive(false);
+                RunSpiritEntry e = new RunSpiritEntry();
+                e.spiritId = spiritId;
+                e.level = 1;
+                one.Add(e);
             }
 
-            if (definition != null && spiritVisuals.TryGetValue(definition.Id, out GameObject spiritVisual))
+            SetSpirits(one);
+        }
+
+        private GameObject VisualFor(string id)
+        {
+            GameObject go;
+            if (!visuals.TryGetValue(id, out go) || go == null)
             {
-                spiritVisual.SetActive(true);
+                go = CharacterFactory.CreateSpirit(id, transform);
+                visuals[id] = go;
             }
+
+            return go;
         }
 
         public void Step(float deltaTime)
         {
-            commandTimer = Mathf.Max(0f, commandTimer - deltaTime);
-            transform.position = owner.transform.position +
-                new Vector3(Mathf.Sin(Time.time * 2f) * 0.6f, 1.4f, Mathf.Cos(Time.time * 2f) * 0.6f);
-            if (definition == null)
+            orbit += deltaTime * 2f;
+            Vector3 center = owner.transform.position;
+            int n = spirits.Count;
+            for (int i = 0; i < n; i++)
             {
-                return;
-            }
+                Instance s = spirits[i];
+                float angle = orbit + i * Mathf.PI * 2f / Mathf.Max(1, n);
+                Vector3 position = center + new Vector3(Mathf.Sin(angle) * CombatTuning.SpiritOrbitRadius,
+                    CombatTuning.SpiritOrbitHeight, Mathf.Cos(angle) * CombatTuning.SpiritOrbitRadius);
+                if (s.Visual != null)
+                {
+                    s.Visual.transform.position = position;
+                }
 
-            autoTimer -= deltaTime;
-            EnemyController target = world.NearestEnemy(owner.transform.position, owner.Stats.Range);
-            if (target == null || autoTimer > 0f)
-            {
-                return;
+                StepAuto(s, position, deltaTime);
+                StepSkill(s, deltaTime);
             }
-
-            float multiplier = ElementMultiplier();
-            Projectile projectile = world.Fire(ProjectileOwner.Player, transform.position,
-                CombatMath.Direction(transform.position, target.transform.position), definition.AutoDamage * multiplier,
-                CombatTuning.SpiritProjectileSpeed, target, Palette.ForElement(definition.Element));
-            projectile.SetImpact(definition.AutoRadius, definition.AutoSlow, definition.AutoBurnDps * owner.Stats.BurnPower,
-                CombatTuning.AutoEffectDuration);
-            autoTimer = definition.AutoInterval;
         }
 
-        public bool TryCommand()
+        private void StepAuto(Instance s, Vector3 position, float deltaTime)
         {
-            if (definition == null || commandTimer > 0f)
+            s.AutoTimer -= deltaTime;
+            if (s.AutoTimer > 0f)
             {
-                return false;
+                return;
             }
 
             EnemyController target = world.NearestEnemy(owner.transform.position, owner.Stats.Range);
-            Vector3 center = target != null ? target.transform.position : owner.transform.position;
-            float multiplier = ElementMultiplier();
+            if (target == null)
+            {
+                return;
+            }
+
+            SpiritDefinition d = s.Definition;
+            float damage = d.AutoDamage * SurvivorTuning.SpiritDamageMult(s.Level) * owner.Stats.SpiritPower *
+                ElementMultiplier(d);
+            Projectile projectile = world.Fire(ProjectileOwner.Player, position,
+                CombatMath.Direction(position, target.transform.position), damage,
+                CombatTuning.SpiritProjectileSpeed, target, Palette.ForElement(d.Element));
+            projectile.SetRange(owner.Stats.Range);
+            projectile.SetImpact(d.AutoRadius, d.AutoSlow, d.AutoBurnDps * owner.Stats.BurnPower,
+                CombatTuning.AutoEffectDuration);
+            projectile.SetHeal(d.AutoHeal * owner.Stats.WoodHealPower);
+            s.AutoTimer = d.AutoInterval * SurvivorTuning.SpiritIntervalMult(s.Level);
+        }
+
+        private void StepSkill(Instance s, float deltaTime)
+        {
+            s.SkillTimer -= deltaTime;
+            if (s.SkillTimer > 0f || world.SimTime - lastCast < CombatTuning.SpiritCastGap)
+            {
+                return;
+            }
+
+            EnemyController target = world.NearestEnemy(owner.transform.position, owner.Stats.Range);
+            if (target == null)
+            {
+                return;
+            }
+
+            CombatFeedback.Play("spirit_cast");
+            SpiritDefinition d = s.Definition;
+            Vector3 center = target.transform.position;
+            float damage = d.CommandDamage * SurvivorTuning.SpiritDamageMult(s.Level) * owner.Stats.SpiritPower *
+                ElementMultiplier(d);
             for (int i = world.Enemies.Count - 1; i >= 0; i--)
             {
-                EnemyController enemy = world.Enemies[i];
-                if (enemy != null && CombatMath.Overlap(enemy.transform.position, enemy.Radius, center,
-                    definition.CommandRadius))
+                EnemyController enemy = i < world.Enemies.Count ? world.Enemies[i] : null;
+                if (enemy != null && enemy.Targetable && CombatMath.Overlap(enemy.transform.position, enemy.Radius,
+                    center, d.CommandRadius))
                 {
-                    enemy.TakeDamage(definition.CommandDamage * multiplier, center);
-                    enemy.ApplyEffects(definition.CommandSlow, 0f, CombatTuning.CommandEffectDuration);
+                    enemy.TakeDamage(damage, center);
+                    enemy.ApplyEffects(d.CommandSlow, 0f, CombatTuning.CommandEffectDuration);
                 }
             }
 
             EnemyController dummy = world.DummyTarget;
             if (dummy != null && dummy.Alive &&
-                CombatMath.Overlap(dummy.transform.position, dummy.Radius, center, definition.CommandRadius))
+                CombatMath.Overlap(dummy.transform.position, dummy.Radius, center, d.CommandRadius))
             {
-                dummy.TakeDamage(definition.CommandDamage * multiplier, center);
-                dummy.ApplyEffects(definition.CommandSlow, 0f, CombatTuning.CommandEffectDuration);
+                dummy.TakeDamage(damage, center);
+                dummy.ApplyEffects(d.CommandSlow, 0f, CombatTuning.CommandEffectDuration);
             }
 
-            owner.Health.AddShield(definition.CommandShield * owner.Stats.ShieldPower);
-            world.PlayBurst(Palette.ForElement(definition.Element), Mathf.Max(0.8f, definition.CommandRadius), center);
-            commandTimer = owner.Stats.CommandCooldown;
-            return true;
+            if (d.CommandShield > 0f)
+            {
+                owner.Health.AddShield(d.CommandShield * owner.Stats.ShieldPower);
+            }
+
+            if (d.CommandHeal > 0f)
+            {
+                owner.Health.Heal(d.CommandHeal * owner.Stats.WoodHealPower);
+            }
+
+            world.PlayBurst(Palette.ForElement(d.Element), Mathf.Max(0.8f, d.CommandRadius), center);
+            float cooldownScale = owner.Stats.CommandCooldown / Catalog.BaseCommandCooldown;
+            s.SkillTimer = d.CommandCooldown * SurvivorTuning.SpiritCooldownMult(s.Level) * cooldownScale;
+            lastCast = world.SimTime;
+            CastsDone++;
         }
 
-        private float ElementMultiplier()
+        private float ElementMultiplier(SpiritDefinition d)
         {
-            return DayNightClock.ElementMultiplier(definition.Element, clock == null ? DayPhase.Day : clock.Phase);
+            return DayNightClock.ElementMultiplier(d.Element, clock == null ? DayPhase.Day : clock.Phase);
         }
     }
 }

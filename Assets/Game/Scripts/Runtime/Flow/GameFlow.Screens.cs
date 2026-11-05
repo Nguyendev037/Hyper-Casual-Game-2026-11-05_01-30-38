@@ -8,82 +8,6 @@ namespace RHMG.Runtime
 {
     public sealed partial class GameFlow
     {
-        void ShowUpgrade()
-        {
-            SetMode(Mode.Upgrade);
-            SetPaused(true);
-            choosing = false;
-            Clear();
-            AddListPanel();
-            Label("Chọn một nâng cấp", 0.8f, 80);
-            var choices = run.Upgrades.RollChoices();
-            for (int index = 0; index < choices.Count; index++)
-            {
-                string id = choices[index];
-                UpgradeDefinition definition = Catalog.GetUpgrade(id);
-                int stack = run.Upgrades.StackCount(id);
-                var card = UiKit.Card(root, UiSkin.IconIdFor(id), Loc.T(definition.Title),
-                    Loc.T(definition.Description) + "\n" + Loc.F("Cấp {0}/2", stack), new Vector2(880, 300));
-                RectTransform cardRect = (RectTransform)card.transform;
-                float centerY = 0.65f - index * 0.19f;
-                // Stretch inside the list panel (0.07–0.93) instead of a fixed 960 that overflowed at 966 wide.
-                cardRect.anchorMin = new Vector2(0.09f, centerY);
-                cardRect.anchorMax = new Vector2(0.91f, centerY);
-                cardRect.pivot = new Vector2(0.5f, 0.5f);
-                cardRect.sizeDelta = new Vector2(0f, 300f);
-                cardRect.anchoredPosition = Vector2.zero;
-                card.onClick.AddListener(() => audioHub.Play("ui"));
-                card.onClick.AddListener(() => ChooseUpgrade(id));
-            }
-            sizeAudit.Capture(root, mode.ToString());
-        }
-        void ChooseUpgrade(string id)
-        {
-            if (choosing)
-            {
-                return;
-            }
-            choosing = true;
-            try
-            {
-                run.ChooseUpgrade(id);
-                if (id == Catalog.HealFallbackId)
-                {
-                    combat?.Heal(Catalog.HealFallbackAmount);
-                }
-                StartTower();
-                Toast(Loc.F("Tầng {0}", run.CurrentFloor));
-            }
-            catch (InvalidOperationException exception)
-            {
-                Debug.LogException(exception);
-            }
-        }
-        void ShowRescue()
-        {
-            SetMode(Mode.Rescue);
-            SetPaused(true);
-            Clear();
-            Label("Lồng của Ember · Hỏa", 0.69f, 64);
-            Label("Hộ vệ đã gục ngã. Mở lồng để giải cứu Ember.", 0.54f, 32);
-            Button("Mở lồng", 0.39f, RescueEmber);
-        }
-
-        void RescueEmber()
-        {
-            bool rescued = rewards.GrantSpiritRescue("spirit.ember", Element.Fire);
-            if (rescued)
-            {
-                Log("spirit_rescue", "spirit.ember");
-                combat.SetDogTier(DogProgress.GetTier(save.dogSealMask));
-                audioHub.Play("rescue");
-                SaveNow();
-            }
-            Clear();
-            Label("Ember được giải cứu!\nCún nhận ấn Hỏa — vòng cổ phát sáng", 0.57f, 64);
-            Button("Tiếp", 0.25f, CompleteRescue);
-            Toast("Ember được giải cứu!");
-        }
         void CompleteRescue()
         {
             try
@@ -114,13 +38,12 @@ namespace RHMG.Runtime
             DrawJoystickArea(0.50f);
             DrawTopHud("RestHealth", false);
             Label("Nơi nghỉ", 0.74f, 72);
-            RestGridButton("Dung hợp", 0, 0, DrawFusion);
+            RestGridButton("Sổ tinh linh", 0, 0, DrawSpiritBook);
             RestGridButton("Tủ đồ", 1, 0, DrawWardrobe);
             RestGridButton("Kết quả", 2, 0, DrawResult);
             RestGridButton("Tiến hóa", 0, 1, OpenShowcase);
             RestGridButton("Chơi lại", 1, 1, StartRun);
             RestGridButton("Về menu", 2, 1, ShowMenu);
-            DrawCommandControls();
             UpdateHudBars();
         }
 
@@ -152,6 +75,7 @@ namespace RHMG.Runtime
             SetMode(Mode.Result);
             SetPaused(true);
             Clear();
+            if (DrawLayoutResult(false)) return;
             AddListPanel();
             Label("Chiến thắng · kết quả chuyến đi", 0.67f, 64);
             Label(
@@ -176,6 +100,7 @@ namespace RHMG.Runtime
             SetMode(Mode.Result);
             SetPaused(true);
             Clear();
+            if (DrawLayoutResult(true)) return;
             AddListPanel();
             Label("Thất bại", 0.68f, 64);
             Label(
@@ -183,18 +108,20 @@ namespace RHMG.Runtime
                     run.GoldEarnedThisRun, save.gold),
                 0.48f,
                 32);
-            Button("Chơi lại", 0.31f, StartRun);
+            Button("Chơi lại", 0.31f, RestartAfterDefeat);
             Button("Về menu", 0.21f, ShowMenu);
         }
 
         void Pause()
         {
+            // Preserve the book/wardrobe's own return route instead of opening a second pause screen.
+            if (mode == Mode.Rest && clock.Paused) return;
             if (mode == Mode.Pause)
             {
                 ContinuePause();
                 return;
             }
-            if (mode == Mode.Tower || mode == Mode.Rest || mode == Mode.Showcase)
+            if (mode == Mode.Tower || mode == Mode.Station || mode == Mode.Rest || mode == Mode.Showcase)
             {
                 pauseReturnMode = mode;
                 pauseReturnRunning = combat != null && combat.Running;
@@ -209,8 +136,9 @@ namespace RHMG.Runtime
             SetMode(target);
             if (combat != null) combat.Running = pauseReturnRunning;
             clock.Paused = pauseReturnClockPaused;
-            Time.timeScale = pauseReturnClockPaused ? 0f : 1f;
+            Time.timeScale = pauseReturnClockPaused ? 0f : RunTimeScale;
             if (target == Mode.Tower && combat != null && run != null) DrawHud();
+            else if (target == Mode.Station && combat != null && run != null) DrawStationHud();
             else if (target == Mode.Rest)
             {
                 // Pause may have been opened from Fusion/Wardrobe (world paused): Rest always resumes it.
@@ -231,6 +159,7 @@ namespace RHMG.Runtime
             SetMode(Mode.Pause);
             SetPaused(true);
             Clear();
+            if (DrawLayoutPause()) return;
             AddListPanel();
             Label("Tạm dừng", 0.68f, 64);
             Button("Tiếp tục", 0.5f, Pause);

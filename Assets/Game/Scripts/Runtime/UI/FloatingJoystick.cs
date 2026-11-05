@@ -21,7 +21,7 @@ namespace RHMG.Runtime.UI
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (pointerId != int.MinValue || eventData.position.x > Screen.width * 0.72f)
+            if (pointerId != int.MinValue)
             {
                 return;
             }

@@ -30,7 +30,9 @@ namespace RHMG.Runtime
 
         void ForcePause()
         {
-            if (mode == Mode.Tower || mode == Mode.Rest || mode == Mode.Showcase)
+            // Menu books and already-paused overlays have no live simulation to suspend.
+            if (combat == null || !combat.Running) return;
+            if (mode == Mode.Tower || mode == Mode.Station || mode == Mode.Rest || mode == Mode.Showcase)
             {
                 Pause();
             }
@@ -43,7 +45,7 @@ namespace RHMG.Runtime
                 combat.Running = !paused;
             }
             clock.Paused = paused;
-            Time.timeScale = paused ? 0f : 1f;
+            Time.timeScale = paused ? 0f : RunTimeScale;
         }
 
         void StopCombat()
@@ -86,15 +88,41 @@ namespace RHMG.Runtime
             {
                 hpFill.fillAmount = combat.PlayerHp01;
             }
-            if (commandFill != null)
-            {
-                commandFill.fillAmount = combat.CommandCooldown01;
-            }
             int hp = Mathf.CeilToInt(playerHp);
             if (hpText != null && hp != displayedHp)
             {
                 displayedHp = hp;
                 hpText.text = hp + "/" + playerMaxHp;
+            }
+            if (run != null)
+            {
+                int level = run.Progress.Level;
+                if (levelText != null && level != displayedLevel)
+                {
+                    displayedLevel = level;
+                    levelText.text = "Lv " + level;
+                }
+                if (xpFill != null)
+                {
+                    float xp01 = Mathf.Clamp01(run.Progress.Xp / (float)XpCurve.Required(level));
+                    if (!Mathf.Approximately(xp01, displayedXp))
+                    {
+                        displayedXp = xp01;
+                        xpFill.anchorMax = new Vector2(xp01, 1f);
+                    }
+                }
+            }
+            if (timeText != null)
+            {
+                int left = combat.FloorTimed ? Mathf.CeilToInt(combat.TimeLeft) :
+                    approvedHud ? Mathf.CeilToInt(clock.PhaseRemaining) : -1;
+                if (left != displayedTime || approvedHud && displayedPhase != clock.Phase)
+                {
+                    displayedTime = left;
+                    string remaining = left < 0 ? string.Empty : (left / 60) + ":" + (left % 60).ToString("00");
+                    timeText.text = approvedHud ? Loc.T(clock.Phase == DayPhase.Day ? "Ngày" : "Đêm") + " " + remaining : remaining;
+                    if (approvedHud) displayedPhase = clock.Phase;
+                }
             }
             int floor = run == null ? 0 : run.CurrentFloor;
             if (floorText != null && floor != displayedFloor)

@@ -50,13 +50,28 @@ namespace RHMG.Runtime.Combat
             Health.Restore(hp);
         }
 
-        public void TakeDamage(float amount, Vector3 from)
+        /// <summary>Debug only (autopilot boss test): the girl cannot be hurt.</summary>
+        public bool GodMode { get; set; }
+
+        /// <summary>Damage over time (storm): ignores the hit-invulnerability window, still respects armor.</summary>
+        public void TakeContinuousDamage(float amount)
         {
-            if (invulnerabilityTimer > 0f)
+            if (GodMode || amount <= 0f)
             {
                 return;
             }
 
+            Health.Damage(amount * (1f - Mathf.Clamp01(Stats.Armor)), transform.position);
+        }
+
+        public void TakeDamage(float amount, Vector3 from)
+        {
+            if (invulnerabilityTimer > 0f || GodMode)
+            {
+                return;
+            }
+
+            amount *= 1f - Mathf.Clamp01(Stats.Armor);
             Health.Damage(amount, from);
             invulnerabilityTimer = CombatTuning.PlayerInvulnerability;
             CombatFeedback.Play("hurt");
@@ -75,17 +90,22 @@ namespace RHMG.Runtime.Combat
             }
 
             Rig.SetMoving(input.magnitude);
+            if (Stats.Regen > 0f)
+            {
+                Health.Heal(Stats.Regen * deltaTime);
+            }
+
             retargetTimer -= deltaTime;
-            if (target == null || !target.Alive ||
+            if (target == null || !target.Targetable ||
                 CombatMath.Flat(target.transform.position - transform.position).sqrMagnitude > Stats.Range * Stats.Range)
             {
                 target = null;
             }
 
-            if (target == null && retargetTimer <= 0f)
+            if (retargetTimer <= 0f)
             {
                 target = world.NearestEnemy(transform.position, Stats.Range);
-            retargetTimer = CombatTuning.TargetRefreshInterval;
+                retargetTimer = CombatTuning.TargetRefreshInterval;
             }
 
             attackTimer -= deltaTime;
@@ -95,9 +115,19 @@ namespace RHMG.Runtime.Combat
                 Rig.PlayCast();
                 spellRing.transform.position = target.transform.position + Vector3.up * 0.08f;
                 spellRing.SetActive(true);
-                world.Fire(ProjectileOwner.Player, Rig.StaffTip.position, direction, Stats.StaffDamage,
-                    CombatTuning.PlayerProjectileSpeed, target,
-                    Palette.LightGold);
+                int count = Mathf.Max(1, Stats.ProjectileCount);
+                for (int i = 0; i < count; i++)
+                {
+                    float offset = (i - (count - 1) * 0.5f) * CombatTuning.MultishotSpreadDegrees;
+                    Vector3 shotDirection = Quaternion.AngleAxis(offset, Vector3.up) * direction;
+                    bool center = Mathf.Abs(offset) < 0.01f;
+                    Projectile shot = world.Fire(ProjectileOwner.Player, Rig.StaffTip.position, shotDirection,
+                        Stats.StaffDamage, CombatTuning.PlayerProjectileSpeed, center ? target : null,
+                        Palette.LightGold);
+                    shot.SetRange(Stats.Range);
+                    shot.SetPierce(Stats.Pierce);
+                }
+
                 CombatFeedback.Play("shoot");
                 attackTimer = Stats.AttackInterval;
             }

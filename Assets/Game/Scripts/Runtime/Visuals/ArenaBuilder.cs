@@ -49,7 +49,7 @@ namespace RHMG.Runtime.Visuals
             else
             {
                 // Sand checkerboard: 2x2-unit tiles over a thin mortar base (#C9A66E).
-                const float tileSize = 2f;
+                float tileSize = width > 20f ? 4f : 2f; // the 36 x 56 arena would need 500+ 2 m tiles
                 const float gap = 0.06f;
                 int tilesX = Mathf.Max(1, Mathf.RoundToInt(width / tileSize));
                 int tilesZ = Mathf.Max(1, Mathf.RoundToInt(depth / tileSize));

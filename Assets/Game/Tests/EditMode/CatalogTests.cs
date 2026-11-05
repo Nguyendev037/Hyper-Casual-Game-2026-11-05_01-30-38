@@ -11,7 +11,7 @@ namespace RHMG.Core.Tests
             Assert.IsNull(Catalog.GetOutfit("nope"));
             Assert.IsNull(Catalog.GetUpgrade("nope"));
             Assert.IsNull(Catalog.GetFloor(0));
-            Assert.IsNull(Catalog.GetFloor(6));
+            Assert.IsNull(Catalog.GetFloor(101));
             Assert.IsNull(Catalog.FindRecipe("spirit.dew", "spirit.steam"));
         }
 
@@ -42,15 +42,30 @@ namespace RHMG.Core.Tests
         }
 
         [Test]
-        public void Floors_FiveWithGuardianOnLast()
+        public void Floors_HundredWithBossesEveryFifth()
         {
-            Assert.AreEqual(5, Catalog.Floors.Count);
+            Assert.AreEqual(100, Catalog.Floors.Count);
+            Assert.AreEqual(100, Catalog.FloorCount);
             Assert.IsTrue(Catalog.GetFloor(5).IsGuardianFloor);
             Assert.IsFalse(Catalog.GetFloor(4).IsGuardianFloor);
-            Assert.AreEqual(2, Catalog.GetFloor(3).Waves.Count);
-            Assert.AreEqual(10f, Catalog.GetFloor(1).Waves[1].DelayAfterPrevious, 1e-6f);
+            Assert.AreEqual(1, Catalog.GetFloor(3).Waves.Count);
             Assert.AreEqual(EnemyKind.CageWarden, Catalog.GetFloor(5).Waves[0].Spawns[0].kind);
+            Assert.AreEqual(EnemyKind.SandQueen, Catalog.GetFloor(50).Waves[0].Spawns[0].kind);
+            Assert.AreEqual(EnemyKind.BlueHairGuy, Catalog.GetFloor(100).Waves[0].Spawns[0].kind);
             Assert.AreEqual(700f, Catalog.GetEnemy(EnemyKind.CageWarden).MaxHp, 1e-6f);
+        }
+
+        [Test]
+        public void Spirits_SixWithThreeRecipesAndNewIds()
+        {
+            Assert.AreEqual(6, Catalog.Spirits.Count);
+            Assert.AreEqual(3, Catalog.Recipes.Count);
+            Assert.AreEqual("spirit.growth", Catalog.FindRecipe("spirit.bud", "spirit.dew").OutputId);
+            Assert.AreEqual("spirit.wildfire", Catalog.FindRecipe("spirit.bud", "spirit.ember").OutputId);
+            Assert.AreEqual(Element.Wood, Catalog.GetSpirit("spirit.bud").Element);
+            Assert.IsTrue(Catalog.GetSpirit("spirit.wildfire").IsFusion);
+            Assert.IsNull(Catalog.GetSpirit("spirit.leaf"));
+            CollectionAssert.AreEqual(new[] { "spirit.dew", "spirit.ember", "spirit.bud" }, Catalog.BaseSpiritIds);
         }
     }
 }

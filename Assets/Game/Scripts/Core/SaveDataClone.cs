@@ -82,5 +82,43 @@ namespace RHMG.Core
 
             return list;
         }
+
+        private RunCheckpoint CloneCheckpoint()
+        {
+            if (runCheckpoint == null)
+            {
+                return null;
+            }
+
+            RunCheckpoint c = new RunCheckpoint();
+            c.valid = runCheckpoint.valid;
+            c.runId = runCheckpoint.runId;
+            c.seed = runCheckpoint.seed;
+            c.floor = runCheckpoint.floor;
+            c.level = runCheckpoint.level;
+            c.xp = runCheckpoint.xp;
+            c.hp = runCheckpoint.hp;
+            c.takenCards = runCheckpoint.takenCards == null ? null : new List<string>(runCheckpoint.takenCards);
+            if (runCheckpoint.spirits != null)
+            {
+                c.spirits = new List<RunSpiritEntry>();
+                for (int i = 0; i < runCheckpoint.spirits.Count; i++)
+                {
+                    RunSpiritEntry e = runCheckpoint.spirits[i];
+                    if (e == null)
+                    {
+                        c.spirits.Add(null);
+                        continue;
+                    }
+
+                    RunSpiritEntry copy = new RunSpiritEntry();
+                    copy.spiritId = e.spiritId;
+                    copy.level = e.level;
+                    c.spirits.Add(copy);
+                }
+            }
+
+            return c;
+        }
     }
 }
